@@ -2,11 +2,11 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 
 /**
@@ -29,13 +29,25 @@ function ossn_javascript() {
     ossn_load_js('opensource.socialnetwork');
     ossn_load_js('opensource.socialnetwork', 'admin');
 	
-	//link chartjs and jquery Ossn v3
+	//some internal and external js
 	ossn_new_external_js('chart.js', 'vendors/Chartjs/Chart.min.js');
 	ossn_new_external_js('chart.legend.js', 'vendors/Chartjs/chart.legend.js');
 	ossn_new_external_js('jquery-1.11.1.min.js', 'vendors/jquery/jquery-1.11.1.min.js');
+	ossn_new_external_js('tinymce.min', 'vendors/tinymce/tinymce.min.js');
+	ossn_new_external_js('jquery-ui.min.js', '//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js', false);
 	
 	ossn_load_external_js('jquery-1.11.1.min.js');
 	ossn_load_external_js('jquery-1.11.1.min.js', 'admin');
+
+	ossn_load_external_js('jquery-ui.min.js');
+	ossn_load_external_js('jquery-ui.min.js', 'admin');
+	
+	ossn_load_external_js('tinymce.min', 'admin');
+	
+	if(ossn_get_context() != 'administrator'){
+		ossn_new_external_js('jquery-arhandler-1.1-min.js', 'vendors/jquery/jquery-arhandler-1.1-min.js');
+		ossn_load_external_js('jquery-arhandler-1.1-min.js');
+	}
 }
 
 /**
@@ -281,7 +293,7 @@ function ossn_jquery_add() {
     echo ossn_html_js(array('src' => ossn_site_url('vendors/jquery/jquery-1.11.1.min.js')));
 } **/
 function ossn_languages_js(){
-	$lang = ossn_site_user_lang_code();
+	$lang = ossn_site_settings('language');
 	$cache = ossn_site_settings('cache');
 	$last_cache = ossn_site_settings('last_cache');
 	
@@ -300,5 +312,53 @@ function ossn_languages_js(){
 		ossn_load_js('ossn.language', 'admin');	
 	}
 }
+/**
+ * Redirect users to absolute url, if he is on wrong url
+ *
+ * Many users have issue while registeration, this is due to ossn.ajax works on absolute path
+ * Github ticket: https://github.com/opensource-socialnetwork/opensource-socialnetwork/issues/458
+ * 
+ * @return void;
+ */
+ function ossn_redirect_absolute_url(){
+	$baseurl 	= ossn_site_url();
+	$parts		= parse_url($baseurl);
+	$iswww		= preg_match('/www./i', $parts['host']);
+	$host		= parse_url($_SERVER['HTTP_HOST']);
+	$redirect	= false;
+	$port 		= "";
+	if(!isset($host['host'])){
+		$host = array();
+		$host['host'] = $_SERVER['HTTP_HOST'];
+	}
+	
+	if(isset($parts['port']) && !empty($parts['port'])){
+		$port = ":{$parts['port']}";
+		if ($parts['port'] == ':80' || $parts['port'] == ':443'){
+			$port = '';
+		}
+		if($parts['port'] !== (int)$_SERVER['SERVER_PORT']){
+			$redirect = true;
+		}
+	}
+	if(isset($_SERVER['HTTP_CF_VISITOR']) && strpos($_SERVER['HTTP_CF_VISITOR'], 'https') !== false) {
+		 $_SERVER['HTTPS'] = 'on'; 
+	}	
+	if(empty($parts['port']) && isset($_SERVER['SERVER_PORT']) && !empty($_SERVER['SERVER_PORT']) 
+			&& $_SERVER['SERVER_PORT'] !== '80' && $_SERVER['SERVER_PORT'] !=='443'){
+			$redirect = true;
+	}
+    	if($parts['scheme'] == 'https' && empty($_SERVER["HTTPS"]) 
+    		|| (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == "on" && $parts['scheme'] == 'http')) {
+        	$redirect = true;
+    	}
+
+	if(($host['host'] !== $parts['host']) || $redirect){
+		header("HTTP/1.1 301 Moved Permanently");
+		$url = "{$parts['scheme']}://{$parts['host']}{$port}{$_SERVER['REQUEST_URI']}";
+		header("Location: {$url}"); 		
+	}
+ }
 ossn_register_callback('ossn', 'init', 'ossn_languages_js');
 ossn_register_callback('ossn', 'init', 'ossn_javascript');
+ossn_register_callback('ossn', 'init', 'ossn_redirect_absolute_url');

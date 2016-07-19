@@ -2,20 +2,25 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 echo '<div class="ossn-photos">';
 $albums = new OssnAlbums;
+$profile = new OssnProfile;
+
 $photos = $albums->GetAlbums($params['user']->guid);
-$profiel_photo = ossn_site_url("avatar/{$params['user']->username}/larger");
+
+$albums->count = true;
+$count = $albums->GetAlbums($params['user']->guid);
+$profiel_photo = $params['user']->iconURL()->larger;
 $pphotos_album = ossn_site_url("album/profile/{$params['user']->guid}");
 
 $profile_covers_url = ossn_site_url("album/covers/profile/{$params['user']->guid}");
-$profile_cover = ossn_site_url("cover/{$params['user']->username}/1");
+$profile_cover = $profile->getCoverURL($params['user']);
 //show profile pictures album
 echo "<li>
 	<a href='{$pphotos_album}'><img src='{$profiel_photo}' class='pthumb' />
@@ -51,3 +56,5 @@ if ($photos) {
 }
 ?>
 </div>
+<?php
+echo ossn_view_pagination($count);

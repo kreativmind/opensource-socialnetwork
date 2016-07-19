@@ -4,44 +4,26 @@
  *
  * @packageOpen Source Social Network
  * @author    Open Social Website Core Team <info@informatikon.com>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 
 $OssnLikes = new OssnLikes;
-$OssnComments = new OssnComments;
-$object = $params['entity_guid'];
+
+$object = $params['entity_guid'];;
 $count = $OssnLikes->CountLikes($object, 'entity');
-?>
-<?php if (ossn_isLoggedIn()) { ?>
-    <div class="like_share  comments-like-comment-links">
-        <div id="ossn-like-<?php echo $object; ?>" class="button-container">
-            <?php if (!$OssnLikes->isLiked($object, ossn_loggedin_user()->guid, 'entity')) {
-                $link['onclick'] = "Ossn.EntityLike({$object});";
-                $link['href'] = 'javascript::;';
-                $link['text'] = ossn_print('ossn:like');
-                echo ossn_plugin_view('output/url', $link);
 
-            } else {
+$user_liked = '';
+if (ossn_isLoggedIn()) { 
+            if ($OssnLikes->isLiked($object, ossn_loggedin_user()->guid, 'entity')) {
                 $user_liked = true;
-                $link['onclick'] = "Ossn.EntityUnlike({$object});";
-                $link['href'] = 'javascript::;';
-                $link['text'] = ossn_print('ossn:unlike');
-                echo ossn_plugin_view('output/url', $link);
-
-            } ?>
-        </div>
-        <span class="dot-comments">.</span> <a href="#comment-box-<?php echo $object; ?>"><?php echo ossn_print('comment:comment'); ?></a>
-        <?php if ($OssnComments->countComments($object, 'entity') > 5) { ?>
-            <span class="dot-comments">.</span> <a href="#"><?php echo ossn_print('comment:view:all'); ?></a>
-        <?php } ?>
-    </div>
-<?php } /* Likes and comments don't show for nonlogged in users */ ?>
-
-<?php if ($OssnLikes->CountLikes($object, 'entity')) { ?>
-    <div class="like_share">
-        <div class="ossn-like-icon"></div>
+            }
+}
+/* Likes and comments don't show for nonlogged in users */ 
+if($count) { ?>
+    <div class="like-share">
+       <i class="fa fa-thumbs-up"></i>
         <?php if ($user_liked == true && $count == 1) { ?>
             <?php echo ossn_print("ossn:liked:you"); ?>
         <?php
@@ -69,3 +51,4 @@ $count = $OssnLikes->CountLikes($object, 'entity');
         }?>
     </div>
 <?php } ?>
+

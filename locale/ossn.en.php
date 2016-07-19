@@ -2,16 +2,16 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 
 $en = array(
 	'home' => 'Home',
-	'site:index' => 'Welcome!',
+	'site:index' => 'Welcome',
 	'news:feed' => 'News Feed',
 	'new:feed' => 'News Feed',
 	'photos:ossn' => 'Photos',
@@ -42,15 +42,13 @@ $en = array(
 	'account:create:notice' => 'By clicking Create an account, you agree to our',
 	'gender' => 'Gender',
 	
-	'acount:settings' => 'Account Settings',
+	'account:settings' => 'Account Settings',
 	'page:error' => 'Page Not Found!',
 	'page:error:text' => 'The page you requested is unavailable or may have been deleted.',
 	'page:error:heading' => '404',
 	
 	'search:users' => 'People',
 	'admin:logout' => 'Log out',
-	'admin:menu' => 'Admin Panel',
-	'feedback' => 'Send feedback',
 	'logout' => 'Log out',
 	
 	'ossn:like:this' => '%s liked this',
@@ -135,8 +133,8 @@ You may copy and paste the address to your browser manually in case the link doe
 	'login:error' => 'Invalid username or passsword!',
 	'login:error:sub' => "We couldn't log you in. Please check your username or password and try again.",
 	'login:success' => 'You are now logged in!',
-	'com:installed' => 'Component has been installed!',
-	'com:install:error' => 'Cannot install component! Make sure it is a valid package.',
+	'com:installed' => 'Component has been uploaded to your components list, you can now enable it from components page.',
+	'com:install:error' => 'Cannot upload component, make sure it is a valid package.',
 	'settings:saved' => 'Settings saved',
 	'com:deleted' => 'Component has been deleted!',
 	'com:delete:error' => 'Cannot delete component! Please try again later.',
@@ -166,7 +164,7 @@ You may copy and paste the address to your browser manually in case the link doe
 	'administration' => 'Administration',
 	
 	'privacy' => 'Privacy',
-	'close' => 'Close',
+	'close' => 'Closed',
 	'open' => 'Open',
 	'public' => 'Public',
 	'friends' => 'Friends',
@@ -285,8 +283,8 @@ Please click the link below to reset password or copy the link and paste into yo
 	'cache:flush:error' => 'Can not flush cache, make sure cache is enabled in cache settings',
 	'cache:flushed' => 'Cache flushed successfully',
 	'ossn:version' => 'OSSN version', 
-	'php:extensionn' => 'PHP extension',
-	'php:versionn' => 'PHP version',
+	'php:extension' => 'PHP extension',
+	'php:version' => 'PHP version',
 	'php:function' => 'PHP function',
 	'admin:old:com' => "Your ossn_com.xml file is based on old version of Ossn. Please update '%s' component.",
 	'admin:old:theme' => "Your ossn_theme.xml file is based on old version of Ossn. Please update '%s' theme.",
@@ -298,7 +296,10 @@ Please click the link below to reset password or copy the link and paste into yo
 	'admin:com:license' => 'License',
 	'admin:com:requirements' => 'Requirements',
 	'admin:com:availability' => 'Availability',
-
+	'ossn:exception:make:sure' => 'Are you sure?',
+	'ossn:premium' => 'Premium Version',
+	'datepicker:days' => "Su, Mo, Tu, We, Th, Fr, Sa",
+	'datepicker:months' => "Jan., Feb., Mar., Apr., May, June, July, Aug., Sep., Oct., Nov., Dec.",
 	/*
 	 * List of ISO 639-1 language codes
 	 * http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes

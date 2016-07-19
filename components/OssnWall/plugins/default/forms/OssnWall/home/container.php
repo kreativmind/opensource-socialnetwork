@@ -2,9 +2,9 @@
 /**
  *    OpenSource-SocialNetwork
  *
- * @package   (Informatikon.com).ossn
+ * @package   (softlab24.com).ossn
  * @author    OSSN Core Team <info@opensource-socialnetwork.com>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://opensource-socialnetwork.com/licence
  * @link      http://www.opensource-socialnetwork.com/licence
  */
@@ -12,6 +12,8 @@ if (!isset($params['user']->guid)) {
     $params['user'] = new stdClass;
     $params['user']->guid = '';
 }
+ ossn_load_external_js('maps.google');
+ ossn_load_external_js('jquery.tokeninput'); 
 ?>
 <div class="tabs-input">
     <div class="wall-tabs">
@@ -35,21 +37,22 @@ if (!isset($params['user']->guid)) {
     </div>
 </div>
 <div class="controls">
-    <li>
-        <div class="ossn-wall-friend"></div>
+    <li class="ossn-wall-friend">
+       <i class="fa fa-users"></i>
     </li>
-    <li>
-        <div class="ossn-wall-location"></div>
+    <li class="ossn-wall-location">
+       <i class="fa fa-map-marker"></i>
     </li>
-    <li>
-        <div class="ossn-wall-photo"></div>
+    <li class="ossn-wall-photo">
+       <i class="fa fa-picture-o"></i>
     </li>
 	<div style="float:right;">
-   		 <input class="ossn-button-submit-b ossn-wall-post" type="submit" value="<?php echo ossn_print('post'); ?>"/>
+    	<div class="ossn-loading ossn-hidden"></div>
+   		 <input class="btn btn-primary ossn-wall-post" type="submit" value="<?php echo ossn_print('post'); ?>"/>
 	</div>
     <li class="ossn-wall-privacy">
         <div class="ossn-wall-privacy-lock"></div>
- 		<span><?php echo ossn_print('privacy'); ?></span>
+ 		<span><i class="fa fa-lock"></i><span class="hidden-xs"><?php echo ossn_print('privacy'); ?></span></span>
 	</li>
 </div>
 <input type="hidden" value="<?php echo $params['user']->guid; ?>" name="wallowner"/>

@@ -4,9 +4,9 @@
  *
  * @packageOpen Source Social Network
  * @author    Open Social Website Core Team <info@informatikon.com>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 $group = $params['group'];
 ?>
@@ -32,4 +32,11 @@ $group = $params['group'];
     <option value='1' <?php echo $close; ?>> <?php echo ossn_print('close'); ?> </option>
 </select>
 <input type="hidden" name="group" value="<?php echo $group->guid; ?>"/>
-<input type="submit" value="<?php echo ossn_print('save'); ?>" class="ossn-button ossn-button-submit"/>
+<input type="submit" value="<?php echo ossn_print('save'); ?>" class="btn btn-success"/>
+<?php
+	echo ossn_plugin_view('output/url', array(
+			'text' => ossn_print('delete'),
+			'href' => ossn_site_url("action/group/delete?guid=$group->guid"),
+			'class' => 'btn btn-danger delete-group',
+			'action' => true,
+	));

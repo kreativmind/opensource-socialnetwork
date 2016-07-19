@@ -3,11 +3,11 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 class OssnChat extends OssnDatabase {
     /**
@@ -127,7 +127,7 @@ class OssnChat extends OssnDatabase {
      * @return string;
      */
     public static function messageTime($time) {
-        $time = date('d/m/Y h:m A', $time);
+        $time = date('d/m/Y h:i A', $time);
         return $time;
     }
 
@@ -143,10 +143,10 @@ class OssnChat extends OssnDatabase {
         }
         foreach ($friends as $friend) {
             $status = 0;
-            if ($friend->isOnline(10)) {
+            if (($friend instanceof OssnUser) && $friend->isOnline(10)) {
                 $status = 'ossn-chat-icon-online';
             }
-            $vars['name'] = strl($friend->fullname, 15);
+            $vars['name'] = $friend->fullname;
             $vars['icon'] = $friend->iconURL()->smaller;
             $vars['guid'] = $friend->guid;
             $vars['status'] = $status;
@@ -165,6 +165,9 @@ class OssnChat extends OssnDatabase {
      * @return bool;
      */
     public function send($from, $to, $message) {
+		if(empty($from) || empty($to) || empty($message)){
+			return false;
+		}
 		$message = html_entity_decode($message, ENT_QUOTES, "UTF-8");
 		$message = strip_tags($message);
 		$message = ossn_restore_new_lines($message);

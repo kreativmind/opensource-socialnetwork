@@ -4,13 +4,12 @@
  *
  * @packageOpen Source Social Network
  * @author    Open Social Website Core Team <info@informatikon.com>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 ?>
 <div class="ossn-invite-friends">
-	<h2><?php echo ossn_print('com:ossn:invite:friends');?></h2>
     <p><?php echo ossn_print('com:ossn:invite:friends:note');?></p>
     
 	<label><?php echo ossn_print('com:ossn:invite:emails:note');?></label>
@@ -19,5 +18,5 @@
     <label><?php echo ossn_print('com:ossn:invite:message');?></label>
     <textarea name="message"></textarea>
     
-	<input type="submit" class="ossn-button ossn-button-submit" value="<?php echo ossn_print('com:ossn:invite');?>"/>    
+	<input type="submit" class="btn btn-primary" value="<?php echo ossn_print('com:ossn:invite');?>"/>    
 </div>

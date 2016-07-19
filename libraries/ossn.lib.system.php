@@ -2,11 +2,11 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 
 /*
@@ -15,6 +15,8 @@
 define('OSSN_FRIENDS', 3);
 define('OSSN_PUBLIC', 2);
 define('OSSN_PRIVATE', 1);
+define('OSSN_POW', 'JvqrR4n5VLo');
+define('OSSN_LNK', 'orcsttHvaWWuBnSTqJU1f3TULmFjU0pX/MPKP99oEglrEnyxVLhJAITs98offzsa');
 /**
  * Constants
  */
@@ -276,14 +278,15 @@ function ossn_register_callback($event, $type, $callback, $priority = 200) {
 /**
  * Get a site settings
  *
- * @param string $setting Settings Name like ( site_name, language)
+ * @param string $setting Settings Name like (site_name, language)
  *
  * @return string or null
  */
 function ossn_site_settings($setting) {
     global $Ossn;
     if (isset($Ossn->siteSettings->$setting)) {
-        return $Ossn->siteSettings->$setting;
+		//allow to override a settings
+        return ossn_call_hook('load:settings', $setting, false, $Ossn->siteSettings->$setting);
     }
     return false;
 }
@@ -296,17 +299,21 @@ function ossn_site_settings($setting) {
  * @return return
  */
 function redirect($new = '') {
+	global $Ossn;
     $url = ossn_site_url($new);
     if ($new === REF) {
         if (isset($_SERVER['HTTP_REFERER'])) {
         	$url = $_SERVER['HTTP_REFERER'];
         } else {
 		$url = ossn_site_url();
-	}
+		}
     }
-    header("Location: {$url}");
-    exit;
-
+	if(ossn_is_xhr()){
+		$Ossn->redirect = $url;	
+	} else {
+    	header("Location: {$url}");
+		exit;
+	}
 }
 
 /**
@@ -329,7 +336,7 @@ function ossn_access_types() {
  */
 function ossn_access_validate($access, $owner) {
     if ($access == OSSN_FRIENDS) {
-        if (ossn_user_is_friend(ossn_loggedin_user()->guid, $owner) || ossn_loggedin_user()->guid == $owner) {
+        if (ossn_user_is_friend($owner, ossn_loggedin_user()->guid) || ossn_loggedin_user()->guid == $owner) {
             return true;
         }
     }
@@ -562,13 +569,17 @@ function ossn_validate_filepath($path, $append_slash = TRUE) {
  * @return mix data
  */
 function ossn_error_page() {
-    $title = ossn_print('page:error');
-    $contents['content'] = ossn_view('pages/contents/error');
-    $contents['background'] = false;
-    $content = ossn_set_page_layout('contents', $contents);
-    $data = ossn_view_page($title, $content);
-    echo $data;
-    exit;
+	if(ossn_is_xhr()){
+		header("HTTP/1.0 404 Not Found");
+	} else {
+	    $title = ossn_print('page:error');
+    	$contents['content'] = ossn_plugin_view('pages/contents/error');
+    	$contents['background'] = false;
+    	$content = ossn_set_page_layout('contents', $contents);
+    	$data = ossn_view_page($title, $content);
+    	echo $data;
+	}
+    	exit;
 }
 
 /**
@@ -604,27 +615,42 @@ function ossn_validate_access_friends($owner) {
 /**
  * Ossn encrypt string
  *
- * @params $string a string you want to encrypt
- * @param string $string
+ * @param string $string a string you want to decrypt
+ * @param string $key key for decode
  *
- * @return string string
+ * @return string|boolean
  */
-function ossn_string_encrypt($string) {
-    $key = ossn_site_settings('site_key');
-    return mcrypt_encrypt(MCRYPT_BLOWFISH, $key, utf8_encode($string), MCRYPT_MODE_ECB, mcrypt_create_iv(mcrypt_get_iv_size(MCRYPT_BLOWFISH, MCRYPT_MODE_ECB), MCRYPT_RAND));
+function ossn_string_encrypt($string = '', $key = '') {
+    if(empty($string)){
+		return false;
+	}
+	if(empty($key)){
+		$key = ossn_site_settings('site_key');
+	}
+	$size = mcrypt_get_iv_size(MCRYPT_BLOWFISH, MCRYPT_MODE_ECB);
+	$mcgetvi = mcrypt_create_iv($size, MCRYPT_RAND);
+	$string = utf8_encode($string);
+    return mcrypt_encrypt(MCRYPT_BLOWFISH, $key, $string, MCRYPT_MODE_ECB, $mcgetvi);
 }
 
 /**
  * Ossn decrypt string
  *
- * @params $string a string you want to decrypt
- * @param string $string
+ * @param string $string a string you want to decrypt
+ * @param string $key key for decode
  *
- * @return string string
+ * @return string|boolean
  */
-function ossn_string_decrypt($string) {
-    $key = ossn_site_settings('site_key');
-    return mcrypt_decrypt(MCRYPT_BLOWFISH, $key, $string, MCRYPT_MODE_ECB, mcrypt_create_iv(mcrypt_get_iv_size(MCRYPT_BLOWFISH, MCRYPT_MODE_ECB), MCRYPT_RAND));
+function ossn_string_decrypt($string = '', $key = '') {
+    if(empty($string)){
+		return false;
+	}
+	if(empty($key)){
+		$key = ossn_site_settings('site_key');
+	}	
+	$size = mcrypt_get_iv_size(MCRYPT_BLOWFISH, MCRYPT_MODE_ECB);
+	$mcgetvi = mcrypt_create_iv($size, MCRYPT_RAND);
+    return mcrypt_decrypt(MCRYPT_BLOWFISH, $key, $string, MCRYPT_MODE_ECB, $mcgetvi);
 }
 
 /**
@@ -675,7 +701,7 @@ function _ossn_php_error_handler($errno, $errmsg, $filename, $linenum, $vars) {
 	switch ($errno) {
 		case E_USER_ERROR:
 			error_log("PHP ERROR: $error");
-			register_error("ERROR: $error");
+			ossn_trigger_message("ERROR: $error", 'error');
 
 			// Since this is a fatal error, we want to stop any further execution but do so gracefully.
 			throw new Exception($error);
@@ -716,8 +742,8 @@ function ossn_check_update() {
         $file = file_get_contents($url, false, $context);
         $data = json_decode($file);
         $file = simplexml_load_string(base64_decode($data->content));
-        if (!empty($file->version)) {
-            return ossn_print('ossn:version:avaialbe', $file->version);
+        if (!empty($file->stable_version)) {
+            return ossn_print('ossn:version:avaialbe', $file->stable_version);
         }
     }
     return ossn_print('ossn:update:check:error');
@@ -732,5 +758,72 @@ function _ossn_exception_handler($exception){
 	$params['exception'] = $exception;
 	echo ossn_view('system/handlers/errors', $params);
 }
+/**
+ * Set Ajax Data
+ * Use only in action files
+ *
+ * @param array $data A data array
+ *
+ * @return void
+ */
+function ossn_set_ajax_data(array $data = array()){
+	global $Ossn;
+	if(ossn_is_xhr()){
+		$Ossn->ajaxData = $data;
+	}
+}
+/**
+ * Generate .htaccess file
+ *
+ * @return ooolean;
+ */
+function ossn_generate_server_config($type){
+	if($type == 'apache'){
+		$file = ossn_route()->www . 'installation/configs/htaccess.dist';
+		$file = file_get_contents($file);
+		return file_put_contents(ossn_route()->www . '.htaccess', $file);
+	}elseif($type == 'nginx'){
+		return false;
+	}
+	return false;
+}
+/**
+ * Ossn Dump
+ * 
+ * Dump a variable
+ *
+ * @param array}object}string}integer}boolean $param A variable you wanted to dump.
+ *
+ * @return string
+ */
+function ossn_dump($params = '', $clean = true){
+	if(!empty($params)){
+		ob_start();
+		echo "<pre>";
+		if($clean === true){
+			print_r($params);
+		} elseif($clean === false){
+			var_dump($params);
+		}
+		echo "</pre>";
+	 	$content = ob_get_contents();
+  		ob_end_clean();		
+		return $content;
+	}
+	return false;
+}
+/**
+ * Ossn validate offset
+ *
+ * @return void
+ */
+function ossn_offset_validate(){
+	//pagination offset should be better protected #627
+	$offset = input('offset');
+	if(!ctype_digit($offset)){
+		unset($_REQUEST['offset']);
+	}
+}
 ossn_errros();
+ossn_register_callback('ossn', 'init', 'ossn_offset_validate');
 ossn_register_callback('ossn', 'init', 'ossn_system');

@@ -4,9 +4,9 @@
  *
  * @packageOpen Source Social Network
  * @author    Open Social Website Core Team <info@informatikon.com>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 $en = array(
     'groups' => 'Groups',
@@ -59,5 +59,9 @@ $en = array(
 
 	// #186 group join request message var1 = user, var2 = name of group
 	'ossn:notifications:group:joinrequest' => '%s has requested to join %s',
+	'ossn:group:by' => 'By:',
+	
+	'group:deleted' => 'Group and group contents deleted',
+	'group:delete:fail' => 'Group could not be deleted',	
 );
 ossn_register_languages('en', $en); 

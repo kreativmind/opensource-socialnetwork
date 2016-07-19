@@ -4,9 +4,9 @@
  *
  * @packageOpen Source Social Network
  * @author    Open Social Website Core Team <info@informatikon.com>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 
 $ads = new OssnAds;
@@ -28,7 +28,7 @@ $pagination->setItem($ads->getAds());
         <td></td>
         <td><?php echo ossn_print('ad:title'); ?></td>
         <td><?php echo ossn_print('ad:site:url'); ?></td>
-        <td><?php echo ossn_print('ad:clicks'); ?></td>
+        <!-- <td><?php echo ossn_print('ad:clicks'); ?></td> -->
         <td><?php echo ossn_print('ad:browse'); ?></td>
         <td><?php echo ossn_print('edit'); ?></td>
     </tr>
@@ -41,7 +41,7 @@ $pagination->setItem($ads->getAds());
                 <td><input type="checkbox" name="entites[]" value="<?php echo $ads->guid; ?>"/></td>
                 <td><?php echo $ads->title; ?></td>
                 <td><?php echo $ads->description; ?></td>
-                <td> 32</td>
+                <!-- <td> 32</td> -->
                 <td>
                     <a href="<?php echo ossn_site_url("administrator/component/OssnAds?settings=view&id={$ads->guid}"); ?>">
                         <?php echo ossn_print('ad:browse'); ?></a></td>

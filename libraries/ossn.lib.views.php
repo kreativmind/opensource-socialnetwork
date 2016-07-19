@@ -2,11 +2,11 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 
 $VIEW = new stdClass;
@@ -216,11 +216,17 @@ function ossn_view_page($title, $content, $page = 'page') {
  * @return string
  */
 function ossn_default_theme() {
-    $theme = new OssnThemes;
-    $active_theme = $theme->getActive();
-    return ossn_route()->themes . $theme->getActive() . '/';
+    return ossn_route()->themes . ossn_site_settings('theme') . '/';
 }
-
+/**
+ * Activated theme URL
+ *
+ * @return string
+ */
+function ossn_theme_url(){
+	$default = ossn_site_settings('theme');
+	return ossn_site_url("themes/{$default}/");
+}
 /**
  * Ossn view form
  *
@@ -236,16 +242,12 @@ function ossn_view_form($name, $args = array(), $type = 'core') {
 /**
  * Ossn view widget
  *
- * @param string $name
- * @param string $title
- * @return mix data
+ * @param array $params A options
+ *
+ * @return string
  */
-function ossn_view_widget($name, $title, $contents) {
-    $theme = new OssnThemes;
-    $active_theme = $theme->getActive();
-    $widget['title'] = $title;
-    $widget['contents'] = $contents;
-    return ossn_view("themes/{$active_theme}/widgets/{$name}", $widget);
+function ossn_view_widget(array $params = array()) {
+    return ossn_plugin_view("widget/view", $params);
 }
 /**
  * View a template

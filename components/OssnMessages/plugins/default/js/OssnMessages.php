@@ -1,11 +1,11 @@
 /**
  * 	Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 Ossn.SendMessage = function($user) {
     Ossn.ajaxRequest({
@@ -13,11 +13,14 @@ Ossn.SendMessage = function($user) {
         form: '#message-send-' + $user,
         action:true,
         beforeSend: function(request) {
-
+            $('#message-send-' + $user).find('input[type=submit]').hide();
+            $('#message-send-' + $user).find('.ossn-loading').removeClass('ossn-hidden');
         },
         callback: function(callback) {
             $('#message-append-' + $user).append(callback);
             $('#message-send-' + $user).find('textarea').val('');
+            $('#message-send-' + $user).find('input[type=submit]').show();
+            $('#message-send-' + $user).find('.ossn-loading').addClass('ossn-hidden');
             Ossn.message_scrollMove($user);
 
         }
@@ -30,7 +33,10 @@ Ossn.getMessages = function($user, $guid) {
         action: false,
         callback: function(callback) {
             $('#message-append-' + $guid).append(callback);
-            Ossn.message_scrollMove($guid);
+            if(callback){
+            	//Unwanted refresh in message window #416 , there is no need to scroll if no new message.
+	            Ossn.message_scrollMove($guid);
+            }
         }
     });
 };

@@ -1,8 +1,5 @@
-Open Source Social Network [3.0-dev] 
+Open Source Social Network [4.2] 
 ======================================
-
-**[NOTE: This branch will not work on production site and have alot of bugs]**
-
 
 Opensource-Socialnetwork (OSSN) is a social networking software written in PHP. It allows you to make a social networking website and helps your members build social relationships, with people who share similar professional or personal interests.
 
@@ -12,17 +9,18 @@ Languages
 ==========
 * English
 * German
+* French
 
 Front-End Features
 ===================
-* User Regestration
+* User Registration
 * User Login
 * Profile 
 * Profile Photo
 * Profile Cover
 * Add/Remove Friends
 * Live Chat
-* Wall
+* Wall posts
 * Photos
 * Ads
 * Groups
@@ -39,11 +37,21 @@ Front-End Features
 * Chat Bar
 * Invite Friends
 * Embed Videos
+* Smilies
+* SitePages (terms, privacy, about)
+* Site Search
+* Reset Password
+* Newsfeed page
+* Post Edit
+* Comment Edit
+* Mobile Friendly
 
 Backend Features
 =================
 
 * Admin Dashboard for site overview
+* Online users count (male/female) graph
+* Total site users count (by months) graph
 * Update Notification
 * Add User
 * Remove User
@@ -57,26 +65,30 @@ Backend Features
 
 Prerequisite
 =============
-* PHP 5.4 OR > ( Will not work on 5.6 )
+* PHP 5.4 OR >
 * MYSQL 5 OR >
 * APACHE
-* mod_rewrite
-* PHP Function curl
+* MOD_REWRITE
+* PHP Function cURL
 * PHP GD Library
+* PHP ZIP Extension
+* PHP settings allow_url_fopen enabled
 * JSON Support
 * XML
 
 Installation
 ============
-http://docs.opensource-socialnetwork.org/index.php/How_To_Install_Open_Source_Social_Network
+https://www.opensource-socialnetwork.org/wiki/view/706/how-to-install-open-source-social-network
 
 DEMO
 ====
-http://www.opensource-socialnetwork.org/demo/
+https://www.opensource-socialnetwork.org/demo/
 
 UPGRADE
 ========
-http://docs.opensource-socialnetwork.org/index.php/How_To_Upgrade_Ossn
+https://www.opensource-socialnetwork.org/wiki/view/708/how-to-upgrade-ossn
 
-Having problem? Contact us www.informatikon.com/contact/support
-Copyright 2014 Informatikon Technologies (informatikon.com)
+
+Copyright 2014-2016 Informatikon Technologies (informatikon.com)
+
+Copyright 2016 SOFTLAB24 (https://www.softlab24.com/)

@@ -4,9 +4,9 @@
  *
  * @packageOpen Source Social Network
  * @author    Open Social Website Core Team <info@informatikon.com>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 define('__OSSN_CHAT__', ossn_route()->com . 'OssnChat/');
 require_once(__OSSN_CHAT__ . 'classes/OssnChat.php');
@@ -16,10 +16,11 @@ function ossn_chat_init() {
     ossn_extend_view('css/ossn.default', 'css/OssnChat');
 
     ossn_new_js('ossn.chat', 'js/OssnChat');
-    ossn_load_js('ossn.chat');
 
     //chat bar
     if (ossn_isLoggedIn()) {
+        //load js and chatbar if user is loggedin
+        ossn_load_js('ossn.chat');
         ossn_extend_view('ossn/page/footer', 'chat/chatbar');
     }
     ossn_register_page('ossnchat', 'ossn_js_page_handler');
@@ -37,7 +38,7 @@ function ossn_js_page_handler($pages) {
             }
             if (isset($pages[1]) && $pages[1] == 'ossn.boot.chat.js') {
                 header('Content-Type: application/javascript');
-                echo ossn_view('components/OssnChat/js/OssnChat.Boot');
+                echo ossn_plugin_view('js/OssnChat.Boot');
             }
             break;
         case 'selectfriend':

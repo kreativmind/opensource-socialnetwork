@@ -2,11 +2,11 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 class OssnWall extends OssnObject {
 		/**
@@ -25,7 +25,14 @@ class OssnWall extends OssnObject {
 				if(empty($access)) {
 						$access = OSSN_PUBLIC;
 				}
-				if($this->owner_guid < 1 || $this->poster_guid < 1 || empty($post)) {
+				$canpost = false;
+				if(!empty($post)) {
+						$canpost = true;
+				}
+				if(!empty($_FILES['ossn_photo']['tmp_name'])) {
+						$canpost = true;
+				}
+				if(empty($this->owner_guid) || empty($this->poster_guid) || $canpost === false) {
 						return false;
 				}
 				if(isset($this->item_type) && !empty($this->item_type)) {
@@ -39,9 +46,20 @@ class OssnWall extends OssnObject {
 				$this->subtype           = 'wall';
 				$this->title             = '';
 				
+				$post             = preg_replace('/\t/', ' ', $post);
 				$wallpost['post'] = htmlspecialchars($post, ENT_QUOTES, 'UTF-8');
+				
+				//wall tag a friend , GUID issue #566
 				if(!empty($friends)) {
-						$wallpost['friend'] = $friends;
+						$friend_guids = explode(',', $friends);
+						//reset friends guids
+						$friends      = array();
+						foreach($friend_guids as $guid) {
+								if(ossn_user_by_guid($guid)) {
+										$friends[] = $guid;
+								}
+						}
+						$wallpost['friend'] = implode(',', $friends);
 				}
 				if(!empty($location)) {
 						$wallpost['location'] = $location;
@@ -56,10 +74,16 @@ class OssnWall extends OssnObject {
 								$this->OssnFile->subtype    = 'wallphoto';
 								$this->OssnFile->setFile('ossn_photo');
 								$this->OssnFile->setPath('ossnwall/images/');
+								$this->OssnFile->setExtension(array(
+										'jpg',
+										'png',
+										'jpeg',
+										'gif'
+								));
 								$this->OssnFile->addFile();
 						}
-						$params['subject_guid'] = $this->wallguid;
-						$params['poster_guid']  = $this->poster_guid;
+						$params['object_guid'] = $this->wallguid;
+						$params['poster_guid'] = $this->poster_guid;
 						if(isset($wallpost['friend'])) {
 								$params['friends'] = explode(',', $wallpost['friend']);
 						}
@@ -93,13 +117,19 @@ class OssnWall extends OssnObject {
 		 *
 		 * @return object;
 		 */
-		public function GetPostByOwner($owner, $type = 'user') {
+		public function GetPostByOwner($owner, $type = 'user', $count = false) {
 				self::initAttributes();
-				$this->type       = $type;
-				$this->subtype    = 'wall';
-				$this->owner_guid = $owner;
-				$this->order_by   = 'o.guid DESC';
-				return $this->getObjectByOwner();
+				if(empty($owner) || empty($type)) {
+						return false;
+				}
+				$vars = array(
+						'type' => $type,
+						'subtype' => 'wall',
+						'order_by' => 'o.guid DESC',
+						'owner_guid' => $owner,
+						'count' => $count
+				);
+				return $this->searchObject($vars);
 		}
 		
 		/**
@@ -109,12 +139,8 @@ class OssnWall extends OssnObject {
 		 *
 		 * @return object;
 		 */
-		public function GetUserPosts($user) {
-				$this->type       = "user";
-				$this->subtype    = 'wall';
-				$this->owner_guid = $user;
-				$this->order_by   = 'o.guid DESC';
-				return $this->getObjectByOwner();
+		public function GetUserPosts($user, $count = false) {
+				return $this->GetPostByOwner($user, 'user', $count);
 		}
 		
 		/**
@@ -150,7 +176,9 @@ class OssnWall extends OssnObject {
 		 * @return void;
 		 */
 		public function deleteAllPosts() {
-				$posts = $this->GetPosts();
+				$posts = $this->GetPosts(array(
+							'page_limit' => false,							   
+				));
 				if(!$posts) {
 						return false;
 				}
@@ -204,9 +232,9 @@ class OssnWall extends OssnObject {
 				return false;
 		}
 		/**
-		 * Get user group posts guids
+		 * Get user wall postings for wall mode set to Friends-Only 
 		 *
-		 * @param integer $userguid Guid of user
+		 * @param 
 		 *
 		 * @return array;
 		 */
@@ -225,43 +253,120 @@ class OssnWall extends OssnObject {
 						$friend_guids[] = $user->guid;
 						$friend_guids   = implode(',', $friend_guids);
 						
-						//prepare default attributes
-						$default  = array(
-								'limit' => false,
-								'offset' => input('offset', '', 1),
-								'page_limit' => ossn_call_hook('pagination', 'page_limit', false, 10), //call hook for page limit
-								'count' => false
+						$default = array(
+								'type' => 'user',
+								'subtype' => 'wall',
+								'order_by' => 'o.guid DESC',
+								'entities_pairs' => array(
+												array(
+												  	'name' => 'access',
+													'value' => true,
+												  	'wheres' => "(1=1)"
+												  ),
+												array(
+												  	'name' => 'poster_guid',
+													'value' => true,
+													'wheres' => "((emd0.value=2 OR emd0.value=3) AND [this].value IN({$friend_guids}))"
+ 											  )
+								)
 						);
-						$options  = array_merge($default, $params);
-						//get only required result, don't bust your server memory
-						$getlimit = $this->generateLimit($options['limit'], $options['page_limit'], $options['offset']);
-						if($getlimit) {
-								$options['limit'] = $getlimit;
-						}
-						$wheres = array(
-								"md.guid = e.guid",
-								"e.subtype='poster_guid'",
-								"e.type = 'object'",
-								"md.value IN ({$friend_guids})",
-								"o.guid = e.owner_guid"
-						);
-						$vars   = array();
 						
-						$vars['from']     = 'ossn_entities as e, ossn_entities_metadata as md, ossn_object as o';
-						$vars['params']   = array(
-								"o.*"
-						);
-						$vars['wheres']   = array(
-								$this->constructWheres($wheres)
-						);
-						$vars['order_by'] = "guid DESC";
-						$vars['limit']    = $options['limit'];
-						$data             = $this->select($vars, true);
-						if($data) {
-								return $data;
-						}
-						
+						$options = array_merge($default, $params);
+						return $this->searchObject($options);
 				}
 				return false;
 		}
+
+		/**
+		 * Get user wall postings for wall mode set to All-Site-Posts 
+		 *
+		 * @param 
+		 *
+		 * @return array;
+		 */
+		public function getPublicPosts($params = array()) {
+				$user = ossn_loggedin_user();
+				if(isset($user->guid) && !empty($user->guid)) {
+						$friends      = $user->getFriends();
+						$friend_guids = '';
+						if($friends) {
+								foreach($friends as $friend) {
+										$friend_guids[] = $friend->guid;
+								}
+						}
+						// add all users posts;
+						// (if user has 0 friends, show at least his own postings if wall access type = friends only)
+						$friend_guids[] = $user->guid;
+						$friend_guids   = implode(',', $friend_guids);
+						
+						$default = array(
+								'type' => 'user',
+								'subtype' => 'wall',
+								'order_by' => 'o.guid DESC',
+								'entities_pairs' => array(
+												array(
+												  	'name' => 'access',
+													'value' => true,
+												  	'wheres' => "(1=1)"
+												  ),
+												array(
+												  	'name' => 'poster_guid',
+													'value' => true,
+													'wheres' => "(emd0.value=2) OR (emd0.value=3 AND [this].value IN({$friend_guids}))"
+												  )
+								)
+						);
+						
+						$options = array_merge($default, $params);
+						return $this->searchObject($options);
+				}
+				return false;
+		}
+
+		/**
+		 * Get all user wall posts for admins
+		 *
+		 * @param 
+		 *
+		 * @return array;
+		 */
+		public function getAllPosts($params = array()) {
+				$user = ossn_loggedin_user();
+				if(isset($user->guid) && !empty($user->guid)) {
+						$friends      = $user->getFriends();
+						$friend_guids = '';
+						if($friends) {
+								foreach($friends as $friend) {
+										$friend_guids[] = $friend->guid;
+								}
+						}
+						// add all users posts;
+						// (if user has 0 friends, show at least his own postings if wall access type = friends only)
+						$friend_guids[] = $user->guid;
+						$friend_guids   = implode(',', $friend_guids);
+						
+						$default = array(
+								'type' => 'user',
+								'subtype' => 'wall',
+								'order_by' => 'o.guid DESC',
+								'entities_pairs' => array(
+												array(
+												  	'name' => 'access',
+													'value' => true,
+												  	'wheres' => "(1=1)"
+												  ),
+												array(
+												  	'name' => 'poster_guid',
+													'value' => true,
+													'wheres' => "(emd0.value=2 OR emd0.value=3)"
+												  )
+								)
+						);
+						
+						$options = array_merge($default, $params);
+						return $this->searchObject($options);
+				}
+				return false;
+		}
+		
 } //class

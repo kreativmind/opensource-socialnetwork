@@ -2,33 +2,36 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 $postcontrols = $params['menu'];
 if($postcontrols){
 ?>
-<div class="ossn-wall-post-controls" onclick="Ossn.PostMenu(this);">
-    <div class="drop-down-arrow"></div>
-    <div class="post-menu">
-        <div class="menu-links">
+<a id="dLabel" role="button" data-toggle="dropdown" class="btn" data-target="#">
+	<i class="fa fa-sort-desc"></i>
+</a>
+<ul class="dropdown-menu multi-level" role="menu" aria-labelledby="dropdownMenu">
             <?php
-            if (!empty($postcontrols)) {
                 foreach ($postcontrols as $menu) {
-                    foreach ($menu as $text => $link) {
-                        $link = ossn_args($link);
+                    foreach ($menu as $link) {
+					 	$class = "post-control-".$link['name'];
+					 	if(isset($link['class'])){
+							$link['class'] = $class.' '.$link['class'];	
+						} else {
+							$link['class'] = $class;
+						}						
+						unset($link['name']);
+						$link = ossn_plugin_view('output/url', $link);						
                         ?>
-                        <li><a <?php echo $link; ?>><?php echo $text; ?></a></li>
+                        <li><?php echo $link; ?></li>
                     <?php
                     }
                 }
-            }?>
-        </div>
-    </div>
-
-</div>
+            ?>
+    </ul>
 <?php 
 }

@@ -2,11 +2,11 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 global $OssnInstall;
 if (!isset($OssnInstall)) {
@@ -24,6 +24,10 @@ if (is_file('INSTALLED')) {
 }
 require_once(dirname(__FILE__) . '/libraries/ossn.install.php');
 require_once(dirname(__FILE__) . '/classes/OssnInstall.php');
+
+//geneate .htaccess file #432
+ossn_generate_server_config_setup('apache');
+
 if (!isset($_REQUEST['action'])) {
     ossn_installation_page();
 }

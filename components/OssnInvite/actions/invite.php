@@ -4,14 +4,13 @@
  *
  * @packageOpen Source Social Network
  * @author    Open Social Website Core Team <info@informatikon.com>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
  $invite = new OssnInvite;
  $addresses = input('addresses');
- $invite->message = input('message');
-
+ 
  //remove extra spaces from addresses.
  $emails = trim($emails);
  
@@ -54,6 +53,8 @@
  }
  //invite only valid addresses
  foreach($correct_emails as $email){
+ 	 $invite = new OssnInvite;
+ 	 $invite->message = input('message');
 	 $invite->address = trim($email);
 	 //check if email exist then don't send invitation
 	 $user = ossn_user_by_email($email);
@@ -88,4 +89,4 @@
 	ossn_trigger_message(ossn_print('com:ossn:invite:sent:failed', array(implode(',', $failed_emails))), 'error');	 
  }
  //redirect user
- redirect(REF);	 
+ redirect(REF);

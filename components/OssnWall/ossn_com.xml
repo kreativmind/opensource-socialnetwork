@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component xmlns="http://www.opensource-socialnetwork.org/v/3.0">
     <name>OssnWall</name>
+    <id>OssnWall</id>
     <author>Core Team</author>
     <description>Create a profile page for users.</description>
     <license>GNU General Public License, version 2</license>
@@ -9,6 +10,6 @@
     <version>3.0</version>
 	<requires>
 		<type>ossn_version</type>
-		<version>3.0</version>
+		<version>4.0</version>
 	</requires>
 </component>

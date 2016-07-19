@@ -4,9 +4,9 @@
  *
  * @packageOpen Source Social Network
  * @author    Open Social Website Core Team <info@informatikon.com>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 
 define('__OSSN_GROUPS__', ossn_route()->com . 'OssnGroups/');
@@ -41,6 +41,7 @@ function ossn_groups() {
 		ossn_add_hook('newsfeed', "left", 'ossn_add_groups_to_newfeed');
 		ossn_add_hook('search', 'type:groups', 'groups_search_handler');
 		ossn_add_hook('notification:add', 'comments:post:group:wall', 'ossn_notificaiton_groups_comments_hook');
+		ossn_add_hook('notification:add', 'like:post:group:wall', 'ossn_notificaiton_groups_comments_hook');
 		ossn_add_hook('notification:view', 'group:joinrequest', 'ossn_group_joinrequest_notification');
 		
 		//group actions
@@ -48,6 +49,7 @@ function ossn_groups() {
 				ossn_register_action('group/add', __OSSN_GROUPS__ . 'actions/group/add.php');
 				ossn_register_action('group/edit', __OSSN_GROUPS__ . 'actions/group/edit.php');
 				ossn_register_action('group/join', __OSSN_GROUPS__ . 'actions/group/join.php');
+				ossn_register_action('group/delete', __OSSN_GROUPS__ . 'actions/group/delete.php');
 				ossn_register_action('group/member/approve', __OSSN_GROUPS__ . 'actions/group/member/request/approve.php');
 				ossn_register_action('group/member/cancel', __OSSN_GROUPS__ . 'actions/group/member/request/cancel.php');
 				ossn_register_action('group/member/decline', __OSSN_GROUPS__ . 'actions/group/member/request/decline.php');
@@ -59,7 +61,6 @@ function ossn_groups() {
 		
 		//callbacks
 		ossn_register_callback('page', 'load:group', 'ossn_group_load_event');
-		ossn_register_callback('page', 'load:profile', 'ossn_profile_load_event');
 		ossn_register_callback('page', 'load:search', 'ossn_group_search_link');
 		ossn_register_callback('user', 'delete', 'ossn_user_groups_delete');
 		
@@ -80,7 +81,7 @@ function ossn_groups() {
 		//add gorup link in sidebar
 		ossn_register_sections_menu('newsfeed', array(
 				'text' => ossn_print('add:group'),
-				'url' => 'javascript::;',
+				'url' => 'javascript:void(0);',
 				'params' => array(
 						'id' => 'ossn-group-add'
 				),
@@ -90,7 +91,7 @@ function ossn_groups() {
 		//my groups link
 		/* ossn_register_sections_menu('newsfeed', array(
 		'text' => 'My Groups',
-		'url' => 'javascript::;',
+		'url' => 'javascript:void(0);',
 		'section' => 'groups',
 		'icon' => ossn_site_url('components/OssnGroups/images/manages.png')
 		));*/
@@ -139,7 +140,7 @@ function ossn_group_search_link($event, $type, $params) {
 		$url = OssnPagination::constructUrlArgs(array(
 				'type'
 		));
-		ossn_register_menu_link('search:users', 'search:groups', "search?type=groups{$url}", 'search');
+		ossn_register_menu_link('groups', 'groups', "search?type=groups{$url}", 'search');
 }
 
 /**
@@ -280,7 +281,7 @@ function group_members_page($hook, $type, $return, $params) {
 function group_edit_page($hook, $type, $return, $params) {
 		$page  = $params['subpage'];
 		$group = ossn_get_group_by_guid(ossn_get_page_owner_guid());
-		if($group->owner_guid !== ossn_loggedin_user()->guid) {
+		if($group->owner_guid !== ossn_loggedin_user()->guid && !ossn_isAdminLoggedin()) {
 				return false;
 		}
 		if($page == 'edit') {
@@ -313,7 +314,7 @@ function group_requests_page($hook, $type, $return, $params) {
 		$page  = $params['subpage'];
 		$group = ossn_get_group_by_guid(ossn_get_page_owner_guid());
 		if($page == 'requests') {
-				if($group->owner_guid !== ossn_loggedin_user()->guid) {
+				if($group->owner_guid !== ossn_loggedin_user()->guid && !ossn_isAdminLoggedin()) {
 						redirect("group/{$group->guid}");
 				}
 				$mod_content = ossn_plugin_view('groups/pages/requests', array(
@@ -383,7 +384,7 @@ function ossn_group_joinrequest_notification($name, $type, $return, $params) {
 		// lead directly to groups request page
 		$url               = "{$baseurl}group/{$params->subject_guid}/requests";
 		$notification_read = "{$baseurl}notification/read/{$params->guid}?notification=" . urlencode($url);
-		return "<a href='{$notification_read}'>
+		return "<a href='{$notification_read}' class='ossn-group-notification-item'>
 	       <li {$viewed}> {$img} 
 		   <div class='notfi-meta'> {$type}
 		   <div class='data'>" . ossn_print("ossn:notifications:{$params->type}", array(

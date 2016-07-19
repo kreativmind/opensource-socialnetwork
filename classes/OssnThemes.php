@@ -1,21 +1,20 @@
 <?php
-
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 class OssnThemes extends OssnSite {
 		/**
 		 * Get theme details
 		 *
-		 * @params $name = theme id;
+		 * @param string $name Theme id;
 		 *
-		 * @return (object) or return false;
+		 * @return object|false;
 		 */
 		public static function getTheme($name) {
 				$name = trim($name);
@@ -42,7 +41,7 @@ class OssnThemes extends OssnSite {
 		/**
 		 * Get total themes
 		 *
-		 * @return int;
+		 * @return integer
 		 */
 		public function total() {
 				return count($this->getThemes());
@@ -73,9 +72,9 @@ class OssnThemes extends OssnSite {
 		/**
 		 * Upload component
 		 *
-		 * @requires component package file,
+		 * Requires component package file,
 		 *
-		 * @return bool;
+		 * @return boolean
 		 */
 		public function upload() {
 				$archive  = new ZipArchive;
@@ -85,19 +84,33 @@ class OssnThemes extends OssnSite {
 				}
 				$file = new OssnFile;
 				$file->setFile('theme_file');
+				$file->setExtension(array(
+						'zip'
+				));
 				$zip     = $file->file;
 				$newfile = "{$data_dir}/{$zip['name']}";
 				if(move_uploaded_file($zip['tmp_name'], $newfile)) {
 						if($archive->open($newfile) === TRUE) {
-								$archive->extractTo($data_dir);
+								$translit = OssnTranslit::urlize($zip['name']);
+								
+								$archive->extractTo($data_dir . '/' . $translit);
+								$dirctory = scandir($data_dir . '/' . $translit, 1);
+								$dirctory = $dirctory[0];
+								$files    = $data_dir . '/' . $translit . '/' . $dirctory . '/';
+								
 								$archive->close();
-								$validate = pathinfo($zip['name'], PATHINFO_FILENAME);
-								if(is_file("{$data_dir}/{$validate}/ossn_theme.php") && is_file("{$data_dir}/{$validate}/ossn_theme.xml")) {
-										$archive->open($newfile);
-										$archive->extractTo(ossn_route()->themes);
-										$archive->close();
-										OssnFile::DeleteDir($data_dir);
-										return true;
+								
+								if(is_dir($files) && is_file("{$files}ossn_theme.php") && is_file("{$files}ossn_theme.xml")) {
+										$ossn_theme_xml = simplexml_load_file("{$files}ossn_theme.xml");
+										//need to check id , since ossn v3.x
+										if(isset($ossn_theme_xml->id) && !empty($ossn_theme_xml->id)) {
+												//move to components directory
+												if(OssnFile::moveFiles($files, ossn_route()->themes . $ossn_theme_xml->id . '/')) {
+														//why it shows success even if the component is not updated #510
+														OssnFile::DeleteDir($data_dir);
+														return true;
+												}
+										}
 								}
 						}
 				}
@@ -107,19 +120,35 @@ class OssnThemes extends OssnSite {
 		/**
 		 * Get active theme startup file
 		 *
-		 * @return string;
+		 * @return string
 		 */
 		public function getActivePath() {
 				$path = ossn_route()->themes;
 				return "{$path}{$this->getSettings('theme')}/ossn_theme.php";
 		}
-		
+		/**
+		 * Get active theme startup file
+		 *
+		 * @return string
+		 */
+		public function loadActive() {
+				$path = ossn_route()->themes;
+				if(is_file("{$path}{$this->getSettings('theme')}/ossn_theme.php")) {
+						$lang      = ossn_site_settings('language');
+						$lang_file = "{$path}{$this->getSettings('theme')}/locale/ossn.{$lang}.php";
+						if(is_file($lang_file)) {
+								//feature request: multilanguage themes #281
+								include_once($lang_file);
+						}
+						require_once("{$path}{$this->getSettings('theme')}/ossn_theme.php");
+				}
+		}
 		/**
 		 * Enable Theme
 		 *
-		 * @params $name = theme id;
+		 * @params string $name Theme id;
 		 *
-		 * @return bool;
+		 * @return boolean
 		 */
 		public function Enable($theme) {
 				if(!empty($theme)) {
@@ -139,7 +168,7 @@ class OssnThemes extends OssnSite {
 		/**
 		 * Delete theme
 		 *
-		 * @return bool;
+		 * @return boolean
 		 */
 		public function deletetheme($theme) {
 				if(OssnFile::DeleteDir(ossn_route()->themes . "{$theme}/")) {
@@ -167,7 +196,7 @@ class OssnThemes extends OssnSite {
 		/**
 		 * Check theme requirments 
 		 *
-		 * @param xml $element A valid theme xml file
+		 * @param string $element A valid theme xml file
 		 *
 		 * @return false|array
 		 */
@@ -196,8 +225,9 @@ class OssnThemes extends OssnSite {
 												$requirments['type']         = ossn_print('ossn:version');
 												$requirments['value']        = (string) $item->version;
 												$requirments['availability'] = 0;
+												$site_version                = (int) ossn_site_settings('site_version');
 												
-												if(ossn_site_settings('site_version') <= $item->version) {
+												if(($site_version <= $item->version) && ($site_version == (int)$item->version) || (float)$item->version == 3.0) {
 														$requirments['availability'] = 1;
 												}
 												

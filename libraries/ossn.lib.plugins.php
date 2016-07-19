@@ -2,11 +2,11 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 /**
  * Register a plugins by path
@@ -18,11 +18,9 @@
 function ossn_register_plugins_by_path($path) {
 		global $Ossn;
 		
-		if(ossn_site_settings('cache') == 1){
-			return false;
+		if(ossn_site_settings('cache') == 1) {
+				return false;
 		}
-		
-		$path = $path . 'default/';
 		if(!is_dir($path)) {
 				//disable error log, will cause a huge log file
 				//error_log("Ossn tried to register invalid plugins by path: {$path}");
@@ -39,6 +37,12 @@ function ossn_register_plugins_by_path($path) {
 								
 								$name = str_replace($path, '', $location);
 								$name = substr($name, 0, -4);
+								$name = explode('/', $name);
+								
+								$plugin_type = $name[0];
+								unset($name[0]);
+								
+								$name = implode('/', $name);
 								
 								$fpath = substr($file, 0, -4);
 								$fpath = str_replace(array(
@@ -46,7 +50,7 @@ function ossn_register_plugins_by_path($path) {
 										ossn_route()->www
 								), '', $fpath);
 								
-								$Ossn->plugins[$name] = $fpath;
+								$Ossn->plugins[$plugin_type][$name] = $fpath;
 						}
 				}
 		}
@@ -60,11 +64,15 @@ function ossn_register_plugins_by_path($path) {
  * @param array|object  $vars A valid arrays or object
  * @return void|mixed
  */
-function ossn_plugin_view($plugin = '', $vars = array()) {
+function ossn_plugin_view($plugin = '', $vars = array(), $type = 'default') {
 		global $Ossn;
-		if(isset($Ossn->plugins[$plugin])) {
+		$args        = array(
+				'plugin' => $plugin
+		);
+		$plugin_type = ossn_call_hook('plugin', 'view:type', $args, $type);
+		if(isset($Ossn->plugins[$plugin_type][$plugin])) {
 				$extended_views = ossn_fetch_extend_views($plugin, $vars);
-				return ossn_view($Ossn->plugins[$plugin] . $plugin, $vars) . $extended_views;
+				return ossn_view($Ossn->plugins[$plugin_type][$plugin] . $plugin, $vars) . $extended_views;
 		}
 }
 /**
@@ -85,24 +93,24 @@ function ossn_uregister_plugin_view($plugin) {
  *
  * @return string|false
  */
-function ossn_plugins_cache_paths(){
-	$file = ossn_get_userdata("system/plugins_paths");
-	if(is_file($file) && ossn_site_settings('cache') == 1){
-		$file = file_get_contents($file);
-		return json_decode($file, true);
-	}
-	return false;
+function ossn_plugins_cache_paths() {
+		$file = ossn_get_userdata("system/plugins_paths");
+		if(is_file($file) && ossn_site_settings('cache') == 1) {
+				$file = file_get_contents($file);
+				return json_decode($file, true);
+		}
+		return false;
 }
 /**
  * If cache enabled then load paths for cache
  *
  * @return void;
  */
-function ossn_plugin_set(){
-	$paths = ossn_plugins_cache_paths();
-	if($paths){
-	 	global $Ossn;
-		$Ossn->plugins = $paths;
-	}
+function ossn_plugin_set() {
+		$paths = ossn_plugins_cache_paths();
+		if($paths) {
+				global $Ossn;
+				$Ossn->plugins = $paths;
+		}
 }
 ossn_plugin_set();

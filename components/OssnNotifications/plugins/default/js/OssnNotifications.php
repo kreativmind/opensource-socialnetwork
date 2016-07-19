@@ -1,25 +1,27 @@
+//<script>
 /**
  * 	Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
-Ossn.NotificationBox = function($title, $meta, $type, height) {
+Ossn.NotificationBox = function($title, $meta, $type, height, $extra) {
 	//trigger notification box again:
   	Ossn.NotificationsCheck();
     
+    $extra = $extra || '';
     if (height == '') {
-        height = '540px';
+        //height = '540px';
     }
     if ($type) {
         $('.selected').addClass($type);
     }
     if ($title) {
         $('.ossn-notifications-box').show()
-        $('.ossn-notifications-box').find('.type-name').html($title);
+        $('.ossn-notifications-box').find('.type-name').html($title+$extra);
     }
     if ($meta) {
         $('.ossn-notifications-box').find('.metadata').html($meta);
@@ -29,8 +31,8 @@ Ossn.NotificationBox = function($title, $meta, $type, height) {
 Ossn.NotificationBoxClose = function() {
     $('.ossn-notifications-box').hide()
     $('.ossn-notifications-box').find('.type-name').html('');
-    $('.ossn-notifications-box').find('.metadata').html('<div style="height: 66px;"><div class="ossn-loading ossn-notification-box-loading"></div></div><div class="bottom-all"><a href="#"><?php echo ossn_print('see:all'); ?></a></div>');
-    $('.ossn-notifications-box').css('height', '140px');
+    $('.ossn-notifications-box').find('.metadata').html('<div><div class="ossn-loading ossn-notification-box-loading"></div></div><div class="bottom-all"><a href="#">'+Ossn.Print('see:all')+'</a></div>');
+    //$('.ossn-notifications-box').css('height', '140px');
     $('.selected').attr('class', 'selected');
 
 };
@@ -50,13 +52,13 @@ Ossn.NotificationShow = function($div) {
             var height = '';
             if (callback['type'] == 1) {
                 data = callback['data'];
-                height = '540px';
+               // height = '540px';
             }
             if (callback['type'] == 0) {
                 data = callback['data'];
-                height = '100px';
+                //height = '100px';
             }
-            Ossn.NotificationBox(Ossn.Print('notifications'), data, 'notifications', height);
+            Ossn.NotificationBox(Ossn.Print('notifications'), data, 'notifications', height,  callback['extra']);
         }
     });
 };
@@ -87,7 +89,7 @@ Ossn.NotificationFriendsShow = function($div) {
             }
             if (callback['type'] == 0) {
                 data = callback['data'];
-                height = '100px';
+                //height = '100px';
             }
             Ossn.NotificationBox(Ossn.Print('friend:requests'), data, 'firends', height);
         }
@@ -113,7 +115,7 @@ Ossn.AddFriend = function($guid) {
         },
         callback: function(callback) {
             if (callback['type'] == 1) {
-                $('#notification-friend-item-' + $guid).attr('style', 'background:#FFF9D7;');
+                $('#notification-friend-item-' + $guid).addClass("ossn-notification-friend-submit");
                 $('#ossn-nfriends-' + $guid).addClass('friends-added-text').html(callback['text']);
             }
             if (callback['type'] == 0) {
@@ -138,7 +140,7 @@ Ossn.removeFriendRequset = function($guid) {
         },
         callback: function(callback) {
             if (callback['type'] == 1) {
-                $('#notification-friend-item-' + $guid).attr('style', 'background:#FFF9D7;');
+                $('#notification-friend-item-' + $guid).addClass("ossn-notification-friend-submit");
                 $('#ossn-nfriends-' + $guid).addClass('friends-added-text').html(callback['text']);
             }
             if (callback['type'] == 0) {
@@ -170,7 +172,7 @@ Ossn.NotificationMessagesShow = function($div) {
             }
             if (callback['type'] == 0) {
                 data = callback['data'];
-                height = '100px';
+               // height = '100px';
             }
             Ossn.NotificationBox(Ossn.Print('messages'), data, 'messages', height);
         }
@@ -199,7 +201,7 @@ Ossn.NotificationsCheck = function() {
             if (callback['notifications'] > 0) {
                 $notification_count.html(callback['notifications']);
                 $notification.find('.ossn-icon').addClass('ossn-icons-topbar-notifications-new');
-                $notification_count.attr('style', ' display:inline-block;');
+                $notification_count.attr('style', 'display:inline-block !important;');
             }
             if (callback['notifications'] <= 0) {
                 $notification_count.html('');
@@ -211,7 +213,7 @@ Ossn.NotificationsCheck = function() {
             if (callback['messages'] > 0) {
                 $messages_count.html(callback['messages']);
                 $messages.find('.ossn-icon').addClass('ossn-icons-topbar-messages-new');
-                $messages_count.attr('style', ' display:inline-block;');
+                $messages_count.attr('style', 'display:inline-block !important;');
             }
             if (callback['messages'] <= 0) {
                 $messages_count.html('');
@@ -223,7 +225,7 @@ Ossn.NotificationsCheck = function() {
             if (callback['friends'] > 0) {
                 $friends_count.html(callback['friends']);
                 $friends.find('.ossn-icon').addClass('ossn-icons-topbar-friends-new');
-                $friends_count.attr('style', ' display:inline-block;');
+                $friends_count.attr('style', 'display:inline-block !important;');
             }
             if (callback['friends'] <= 0) {
                 $friends_count.html('');
@@ -236,8 +238,28 @@ Ossn.NotificationsCheck = function() {
 };
 Ossn.RegisterStartupFunction(function() {
     $(document).ready(function() {
-        setInterval(function() {
-            Ossn.NotificationsCheck()
-        }, 5000 * 12);
+    		$('.ossn-topbar-dropdown-menu').click(function(){
+                    Ossn.NotificationBoxClose();
+        	});
+		$(document).on('click','.ossn-notification-mark-read', function(e){
+				e.preventDefault();
+   				Ossn.PostRequest({
+        				url: Ossn.site_url + "action/notification/mark/allread",
+        				action:false,
+        				beforeSend: function(request) {
+							$('.ossn-notification-mark-read').attr('style', 'opacity:0.5;');
+ 	       				},
+        				callback: function(callback) {
+           					if(callback['success']){
+								Ossn.trigger_message(callback['success']);
+							}
+							if(callback['error']){
+								Ossn.trigger_message(callback['error']);								
+							}
+							$('.ossn-notification-mark-read').attr('style', '1;');								
+        				}
+    			 });
+		});
+		
     });
 });

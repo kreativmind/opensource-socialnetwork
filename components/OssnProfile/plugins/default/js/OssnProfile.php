@@ -1,14 +1,35 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 Ossn.RegisterStartupFunction(function() {
     $(document).ready(function() {
+        var cYear = (new Date).getFullYear();
+        var alldays = Ossn.Print('datepicker:days');
+        var shortdays = alldays.split(",");
+        var allmonths = Ossn.Print('datepicker:months');
+        var shortmonths = allmonths.split(",");
+
+        var datepick_args = {
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd/mm/yy',
+            yearRange: '1950:' + cYear,
+        };
+
+        if (Ossn.isLangString('datepicker:days')) {
+            datepick_args['dayNamesMin'] = shortdays;
+        }
+        if (Ossn.isLangString('datepicker:months')) {
+            datepick_args['monthNamesShort'] = shortmonths;
+        }
+        $("input[name='birthdate']").datepicker(datepick_args);
+
         /**
          * Reposition cover
          */
@@ -95,12 +116,33 @@ Ossn.RegisterStartupFunction(function() {
                 type: 'POST',
                 data: formData,
                 async: true,
-                beforeSend: function() {
-                    $('.profile-cover-img').attr('class', 'user-cover-uploading');
-                },
                 cache: false,
                 contentType: false,
                 processData: false,
+                beforeSend: function(xhr, obj) {
+                    $('.profile-cover-img').attr('class', 'user-cover-uploading');
+
+                    var fileInput = $('#upload-cover').find("input[type=file]")[0],
+                        file = fileInput.files && fileInput.files[0];
+
+                    if (file) {
+                        var img = new Image();
+
+                        img.src = window.URL.createObjectURL(file);
+
+                        img.onload = function() {
+                            var width = img.naturalWidth,
+                                height = img.naturalHeight;
+
+                            window.URL.revokeObjectURL(img.src);
+                            if (width < 850 || height < 300) {
+                                xhr.abort();
+                                Ossn.trigger_message(Ossn.Print('profile:cover:err1:detail'), 'error');
+                                return false;
+                            }
+                        };
+                    }
+                },
                 success: function(callback) {
                     $time = $.now();
                     $('.profile-cover').find('img').removeClass('user-cover-uploading');
@@ -108,11 +150,7 @@ Ossn.RegisterStartupFunction(function() {
                     $('.profile-cover').find('img').attr('src', $imageurl);
                     $('.profile-cover').find('img').attr('style', '');
                 },
-                error: function() {
-                    Ossn.MessageBox('syserror/unknown');
-                }
             });
-
             return false;
         });
 

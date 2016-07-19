@@ -2,20 +2,29 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
-if (!empty($params['menu'])) {
-    echo '<div class="drop-down-arrow ossn-comment-dropdown"></div>';
-    echo '<div class="menu-links">';
-    foreach ($params['menu'] as $menu) {
-        foreach ($menu as $text => $link) {
-            $link = ossn_args($link);
-            echo "<li> <a {$link}>{$text}</a></li>";
-        }
-    }
-    echo '</div>';
+$commentmenu = $params['menu'];
+if($commentmenu){
+?>
+<a id="dLabel" role="button" data-toggle="dropdown" data-target="#">
+	<i class="fa fa-sort-desc"></i>
+</a>
+<ul class="dropdown-menu multi-level" role="menu" aria-labelledby="dropdownMenu">
+		<?php
+            if (!empty($commentmenu)) {
+    			foreach ($params['menu'] as $menu) {
+        			foreach ($menu as $link) {
+            			unset($link['name']);
+            			$link = ossn_plugin_view('output/url', $link);
+            			echo "<li>{$link}</li>";
+        			}
+    			}
+            }?>
+    </ul>
+<?php 
 }

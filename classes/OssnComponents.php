@@ -1,19 +1,18 @@
 <?php
-
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 class OssnComponents extends OssnDatabase {
 		/**
 		 * Get components from compnents directory
 		 *
-		 * @return components ids;
+		 * @return array
 		 */
 		public function getComponentsDir() {
 				$dir     = ossn_route()->com;
@@ -35,7 +34,7 @@ class OssnComponents extends OssnDatabase {
 		/**
 		 * Count total components
 		 *
-		 * @return (int);
+		 * @return integer
 		 */
 		public function total() {
 				return count($this->getComponents());
@@ -44,7 +43,7 @@ class OssnComponents extends OssnDatabase {
 		/**
 		 * Get components list
 		 *
-		 * @return components ids;
+		 * @return array
 		 */
 		public function getComponents() {
 				$params['from'] = 'ossn_components';
@@ -61,9 +60,9 @@ class OssnComponents extends OssnDatabase {
 		/**
 		 * Upload component
 		 *
-		 * @requires component package file,
+		 * Requires component package file,
 		 *
-		 * @return bool;
+		 * @return boolean
 		 */
 		public function upload() {
 				$archive  = new ZipArchive;
@@ -75,21 +74,33 @@ class OssnComponents extends OssnDatabase {
 				$newfile = "{$data_dir}/{$zip['name']}";
 				if(move_uploaded_file($zip['tmp_name'], $newfile)) {
 						if($archive->open($newfile) === TRUE) {
-								$archive->extractTo($data_dir);
+								$translit = OssnTranslit::urlize($zip['name']);
 								
 								//make community components works on installer #394
-								$validate = $archive->statIndex(0);
-								$validate = str_replace('/', '', $validate['name']);
+								//Component installer problems with certain zip - archives #420
 								
+								$archive->extractTo($data_dir . '/' . $translit);
+								$dirctory = scandir($data_dir . '/' . $translit, 1);
+								$dirctory = $dirctory[0];
+								
+								$files = $data_dir . '/' . $translit . '/' . $dirctory . '/';
 								$archive->close();
 								
-								if(is_dir("{$data_dir}/{$validate}") && is_file("{$data_dir}/{$validate}/ossn_com.php") && is_file("{$data_dir}/{$validate}/ossn_com.xml")) {
-										$archive->open($newfile);
-										$archive->extractTo(ossn_route()->com);
-										$archive->close();
-										$this->newCom($validate);
-										OssnFile::DeleteDir($data_dir);
-										return true;
+								if(is_dir($files) && is_file("{$files}ossn_com.php") && is_file("{$files}ossn_com.xml")) {
+										
+										$ossn_com_xml = simplexml_load_file("{$files}ossn_com.xml");
+										//need to check id , since ossn v3.x
+										if(isset($ossn_com_xml->id) && !empty($ossn_com_xml->id)) {
+												//move to components directory
+												if(OssnFile::moveFiles($files, ossn_route()->com . $ossn_com_xml->id . '/')) {
+														//add new component to system
+														$this->newCom($ossn_com_xml->id);
+														
+														//why it shows success even if the component is not updated #510
+														OssnFile::DeleteDir($data_dir);
+														return true;														
+												}
+										}
 								}
 						}
 				}
@@ -99,7 +110,7 @@ class OssnComponents extends OssnDatabase {
 		/**
 		 * Insert a new component to system
 		 *
-		 * @return bool;
+		 * @return boolean
 		 */
 		public function newCom($com) {
 				if(!empty($com) && is_dir(ossn_route()->com . $com)) {
@@ -109,7 +120,7 @@ class OssnComponents extends OssnDatabase {
 						 * @Reason: Initial;
 						 */
 						$this->statement("SELECT * FROM ossn_components
-			    WHERE (com_id='$com');");
+			    						  WHERE (com_id='$com');");
 						$this->execute();
 						$CHECK = $this->fetch();
 						if(!isset($CHECK->active)) {
@@ -119,8 +130,8 @@ class OssnComponents extends OssnDatabase {
 								 * @Reason: Initial;
 								 */
 								$this->statement("INSERT INTO `ossn_components`
-			  (`com_id`, `active`)
-		          VALUES ('$com', '0')");
+			 									 (`com_id`, `active`)
+		         								  VALUES ('$com', '0')");
 								$this->execute();
 								return true;
 						}
@@ -136,6 +147,9 @@ class OssnComponents extends OssnDatabase {
 		public function loadComs() {
 				$coms = $this->getActive();
 				$lang = ossn_site_settings('language');
+				
+				$vars['activated'] = $coms;
+				ossn_trigger_callback('components', 'before:load', $vars);
 				if(!$coms) {
 						return false;
 				}
@@ -150,6 +164,7 @@ class OssnComponents extends OssnDatabase {
 								include_once("{$dir}{$com->com_id}/ossn_com.php");
 						}
 				}
+				ossn_trigger_callback('components', 'after:load', $vars);
 		}
 		
 		/**
@@ -168,9 +183,9 @@ class OssnComponents extends OssnDatabase {
 		/**
 		 * Get component details
 		 *
-		 * @params $name = component id;
+		 * @params string $name Component id;
 		 *
-		 * @return (object) or return false;
+		 * @return false|object
 		 */
 		public static function getCom($name) {
 				$name = trim($name);
@@ -190,21 +205,21 @@ class OssnComponents extends OssnDatabase {
 		 * @param string $element Component xml string.
 		 *
 		 * @return boolean
-		 */		
-		public function isOld($element){
-			if(empty($element)){
+		 */
+		public function isOld($element) {
+				if(empty($element)) {
+						return false;
+				}
+				$version = current($element->getNamespaces());
+				if(substr($version, -3) == '1.0') {
+						return true;
+				}
 				return false;
-			}
-			$version = current($element->getNamespaces());
-			if(substr($version, -3) == '1.0'){
-				return true;
-			}
-			return false;
 		}
 		/**
 		 * Check component requirments 
 		 *
-		 * @param xml $element A valid component xml file
+		 * @param string $element A valid component xml file
 		 *
 		 * @return false|array
 		 */
@@ -220,7 +235,7 @@ class OssnComponents extends OssnDatabase {
 				);
 				if(isset($element->name)) {
 						if(isset($element->requires)) {
-								$result = array();
+								$result   = array();
 								$requires = $element->requires;
 								foreach($requires as $item) {
 										if(!in_array($item->type, $types)) {
@@ -233,8 +248,9 @@ class OssnComponents extends OssnDatabase {
 												$requirments['type']         = ossn_print('ossn:version');
 												$requirments['value']        = (string) $item->version;
 												$requirments['availability'] = 0;
+												$site_version                = (int) ossn_site_settings('site_version');
 												
-												if(ossn_site_settings('site_version') <= $item->version) {
+												if(($site_version <= $item->version) && ($site_version == (int)$item->version) || (float)$item->version == 3.0) {
 														$requirments['availability'] = 1;
 												}
 												
@@ -283,11 +299,11 @@ class OssnComponents extends OssnDatabase {
 		/**
 		 * Check if component is active or not
 		 *
-		 * @return bool;
+		 * @return boolean
 		 */
 		public function isActive($id = '') {
-				if(empty($id)){
-					return false;
+				if(empty($id)) {
+						return false;
 				}
 				$params['from']   = 'ossn_components';
 				$params['wheres'] = array(
@@ -303,9 +319,9 @@ class OssnComponents extends OssnDatabase {
 		/**
 		 * Enable Component
 		 *
-		 * @return bool;
+		 * @return boolean
 		 */
-		public function ENABLE($com) {
+		public function enable($com) {
 				if(!empty($com) && is_dir(ossn_route()->com . $com)) {
 						/*
 						 * Get a com;
@@ -346,14 +362,27 @@ class OssnComponents extends OssnDatabase {
 		/**
 		 * Delete component
 		 *
-		 * @return bool;
+		 * @return boolean
 		 */
-		public function deletecom($com) {
+		public function delete($com) {
 				if(in_array($com, $this->requiredComponents())) {
 						return false;
 				}
-				$this->statement("DELETE FROM ossn_components WHERE(com_id='{$com}');");
-				if($this->execute()) {
+				$component = $this->getbyName($com);
+				if(!$component){
+					return false;
+				}
+				$params           = array();
+				$params['from']   = "ossn_components";
+				$params['wheres'] = array(
+						"com_id='{$com}'"
+				);
+				if(parent::delete($params)) {
+						//Delete component settings upon its deletion #538
+						$entities = new OssnEntities;
+						$entities->deleteByOwnerGuid($component->id, 'component');
+						
+						//delete component directory
 						OssnFile::DeleteDir(ossn_route()->com . "{$com}/");
 						return true;
 				}
@@ -365,26 +394,19 @@ class OssnComponents extends OssnDatabase {
 		 *
 		 * Admin can't disable required components;
 		 *
-		 * @return array;
+		 * @return array
 		 */
 		public function requiredComponents() {
-				return array(
-						'OssnAds',
-						'OssnComments',
-						'OssnLikes',
-						'OssnMessages',
-						'OssnNotifications',
-						'OssnPhotos',
+				$default = array(
 						'OssnProfile',
-						'OssnSearch',
-						'OssnWall'
 				);
+				return ossn_call_hook('required', 'components', false, $default);
 		}
 		
 		/**
 		 * Disable component
 		 *
-		 * @return bool;
+		 * @return boolean
 		 */
 		public function DISABLE($com = NULL) {
 				if(in_array($com, $this->requiredComponents())) {
@@ -402,7 +424,7 @@ class OssnComponents extends OssnDatabase {
 		/**
 		 * Bundled components
 		 *
-		 * @return array;
+		 * @return array
 		 */
 		public function bundledComponents() {
 				return array_merge(array(
@@ -413,56 +435,79 @@ class OssnComponents extends OssnDatabase {
 						'OssnBlock',
 						'OssnSmilies',
 						'OssnInvite',
-						'OssnEmbed'
+						'OssnEmbed',
+						'OssnAds',
+						'OssnComments',
+						'OssnLikes',
+						'OssnMessages',
+						'OssnNotifications',
+						'OssnPhotos',
+						'OssnSearch',
+						'OssnWall'						
 				), $this->requiredComponents());
 		}
-		
 		/**
 		 * Set component settings
 		 *
-		 * @params $component Component id
-		 *         $setting Setting name
-		 *         $value Setting value
+		 * setSettings should have array() to accept values #434
 		 *
-		 * @return bool;
+		 * @param  string $component Component id
+		 * @param  array vars Setting (two-dem array)
+		 *
+		 * @return boolean
 		 */
-		public function setComSETTINGS($component, $setting, $value) {
-				$this->component = self::getComSettings($component);
-				if(!isset($this->component->$setting)) {
-						if(isset($component)) {
-								$this->entity             = new OssnEntities;
-								$this->entity->type       = 'component';
-								$this->entity->subtype    = $setting;
-								$this->entity->owner_guid = self::getComponentGuid($component);
-								$this->entity->value      = $value;
-								if($this->entity->add()) {
-										return true;
-								}
-						}
-				} else {
-						$this->entity                 = new OssnEntities;
-						$this->entity->type           = 'component';
-						$this->entity->owner_guid     = self::getComponentGuid($component);
-						$this->entity->data->$setting = $value;
-						if($this->entity->save()) {
-								return true;
+		public function setSettings($component, array $vars = array()) {
+				$settings = self::getComSettings($component);
+				$guid     = $this->getbyName($component)->getID();
+				$entity   = new OssnEntities;
+				if(empty($guid)) {
+						return false;
+				}
+				foreach($vars as $name => $value) {
+						if($settings && !$settings->isParam($name)) {
+								$entity->owner_guid = $guid;
+								$entity->type       = 'component';
+								$entity->subtype    = $name;
+								$entity->value      = $value;
+								$entity->add();
+						} else {
+								$entity->owner_guid  = $guid;
+								$entity->type        = 'component';
+								$entity->data->$name = $value;
+								$entity->save();
 						}
 				}
-				return false;
+				return true;
+		}
+		/**
+		 * Set component settings
+		 *
+		 * @param string $component Component id
+		 * @param string $setting Setting name
+		 * @param string $value Setting value
+		 *
+		 * @note This method is deprecated and will be removed in Ossn v4.0
+		 *
+		 * @return boolean
+		 */
+		public function setComSETTINGS($component, $setting, $value) {
+				return $this->setSettings($component, array(
+						$setting => $value
+				));
 		}
 		
 		/**
 		 * Get Component Settings
 		 *
-		 * @params $component Component id
+		 * @params string $component Component id
 		 *
-		 * @return array;
+		 * @return false|array;
 		 */
-		public function getComSettings($component) {
-				$this->entity             = new OssnEntities;
-				$this->entity->type       = 'component';
-				$this->entity->owner_guid = self::getComponentGuid($component);
-				$settings                 = $this->entity->get_entities();
+		public function getSettings($component) {
+				$entity             = new OssnEntities;
+				$entity->type       = 'component';
+				$entity->owner_guid = $this->getbyName($component)->getGUID();
+				$settings           = $entity->get_entities();
 				if(is_array($settings) && !empty($settings)) {
 						foreach($settings as $setting) {
 								$comsettings[$setting->subtype] = $setting->value;
@@ -471,24 +516,33 @@ class OssnComponents extends OssnDatabase {
 				}
 				return false;
 		}
-		
 		/**
-		 * Get component guid by component id
+		 * Get Component Settings
 		 *
-		 * @param $component Component id
+		 * @params string $component Component id
 		 *
-		 * @return guid or false;
+		 * @note This method is deprecated and will be removed in Ossn v4.0
+		 *
+		 * @return false|array;
 		 */
-		public function getComponentGuid($component) {
-				$params = array(
-						'from' => 'ossn_components',
-						'wheres' => array(
-								"com_id='{$component}'"
-						)
+		public function getComSettings($component) {
+				return $this->getSettings($component);
+		}
+		/**
+		 * Get component
+		 *
+		 * @note This id is not a package id 
+		 *
+		 * @return integer|false;
+		 */
+		public function getbyName($name) {
+				$params          = array();
+				$params['from']  = 'ossn_components';
+				$params['wheres'] = array(
+						"com_id='{$name}'"
 				);
-				$fetch  = $this->select($params);
-				if(isset($fetch->id)) {
-						return $fetch->id;
+				if($data = $this->select($params)) {
+						return arrayObject($data, get_class($this));
 				}
 				return false;
 		}

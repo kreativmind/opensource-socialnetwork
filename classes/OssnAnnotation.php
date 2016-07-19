@@ -2,17 +2,17 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 class OssnAnnotation extends OssnEntities {
 		/**
 		 * Initialize the objects.
 		 *
-		 * @return void;
+		 * @return void
 		 */
 		public function initAttributes() {
 				$this->OssnDatabase = new OssnDatabase;
@@ -26,18 +26,19 @@ class OssnAnnotation extends OssnEntities {
 				if(empty($this->order_by)) {
 						$this->order_by = '';
 				}
+				$this->data = new stdClass;
 		}
 		/**
 		 * Create annotation;
+		 * 
+		 * Requires the owner_guid, subject_guid, and annotation type
 		 *
-		 * @requires : $object->(owner_guid, subject_guid, type, subtype, value)
-		 *
-		 * @return bool;
+		 * @return boolean
 		 */
 		public function addAnnotation() {
 				self::initAttributes();
-				if(empty($this->owner_guid) || empty($this->subject_guid)){
-					return false;
+				if(empty($this->owner_guid) || empty($this->subject_guid) || empty($this->type)) {
+						return false;
 				}
 				$params['into']        = 'ossn_annotations';
 				$params['names']       = array(
@@ -53,67 +54,91 @@ class OssnAnnotation extends OssnEntities {
 						$this->time_created
 				);
 				$this->annotation_type = $this->type;
-				$this->owner_guid_old  = $this->owner_guid;
+				
+				$this->data->{$this->type} = $this->value;
+				$this->owner_guid_old      = $this->owner_guid;
 				if($this->OssnDatabase->insert($params)) {
 						$this->annotation_inserted = $this->OssnDatabase->getLastEntry();
-						$this->atype               = $this->type;
-						$this->type                = 'annotation';
-						$this->subtype             = $this->atype;
-						$this->owner_guid          = $this->annotation_inserted;
-						$this->value               = $this->value;
-						$this->add();
-						
+						if(isset($this->data) && is_object($this->data)) {
+								foreach($this->data as $name => $value) {
+										$this->owner_guid = $this->annotation_inserted;
+										$this->type       = 'annotation';
+										$this->subtype    = $name;
+										$this->value      = $value;
+										$this->add();
+								}
+						}
 						$params['subject_guid']    = $this->subject_guid;
 						$params['owner_guid']      = $this->owner_guid_old;
 						$params['type']            = $this->annotation_type;
 						$params['annotation_guid'] = $this->OssnDatabase->getLastEntry();
 						ossn_trigger_callback('annotations', 'created', $params);
 						
-						return true;
+						return $this->annotation_inserted;
 				}
 				return false;
 		}
 		/**
 		 * Get annotation by annotation id;
 		 *
-		 * @requires : $object->(annotation_id)
+		 * Requires : $object->(annotation_id)
 		 *
-		 * @return annotation;
+		 * @return object
 		 */
 		public function getAnnotationById() {
-				$params                 = array();
+				$params                  = array();
 				$params['annotation_id'] = $this->annotation_id;
 				
 				$data = $this->searchAnnotation($params);
-				if($data){
-					return $data[0];
+				if($data) {
+						return $data[0];
 				}
 		}
 		/**
 		 * Get annotations by annotation type
 		 *
-		 * @requires : $object->(annotation_id)
+		 * Requires: $object->(annotation_id)
 		 *
-		 * @return annotation;
+		 * @return object;
 		 */
 		public function getAnnotationsByType() {
-				$params                 = array();
-				$params['type'] = $this->type;
-				$params['subtype'] = $this->subtype;
+				if(!isset($this->limit)) {
+						$this->limit = false;
+				}
+				if(!isset($this->page_limit)) {
+						$this->page_limit = false;
+				}
+				$params             = array();
+				$params['type']     = $this->type;
+				$params['subtype']  = $this->subtype;
+				$params['limit']    = $this->limit;
+				$params['order_by'] = $this->order_by;
 				
 				return $this->searchAnnotation($params);
 		}
 		/**
 		 * Get annotations by owner 
 		 *
-		 * @requires : $this->owner_guid
+		 * Requires : $this->owner_guid
 		 *
 		 * @return object;
 		 */
 		public function getAnnotationsByOwner() {
-				$params                 = array();
-				$params['owner_guid'] = $this->subject_guid;
-				
+				if(!isset($this->limit)) {
+						$this->limit = false;
+				}
+				if(!isset($this->page_limit)) {
+						$this->page_limit = false;
+				}
+				if(empty($this->owner_guid)){
+					return false;
+				}
+				$params               = array();
+				$params['owner_guid'] = $this->owner_guid;
+				$params['limit']      = $this->limit;
+				$params['order_by']   = $this->order_by;
+				$params['page_limit'] = $this->page_limit;
+				$params['type']       = $this->type;
 				return $this->searchAnnotation($params);
 		}
 		/**
@@ -123,12 +148,17 @@ class OssnAnnotation extends OssnEntities {
 		 *         $type = annotation type
 		 * @param string $type
 		 *
-		 * @return bool;
+		 * @return object;
 		 */
 		public function annon_delete_by_subject($subject, $type) {
 				self::initAttributes();
+				if(empty($subject)) {
+						return false;
+				}
 				$this->subject_guid = $subject;
 				$this->type         = $type;
+				$this->limit        = false;
+				$this->page_limit   = false;
 				$annotations        = $this->getAnnotationBySubject();
 				if($annotations) {
 						foreach($annotations as $annontation) {
@@ -142,22 +172,27 @@ class OssnAnnotation extends OssnEntities {
 		/**
 		 * Get annotation by subject_guid;
 		 *
-		 * @requires : $object->(subject_guid, types(optional))
+		 * Requires : $object->(subject_guid, types(optional))
 		 *
-		 * @return annotations;
+		 * @return object;
 		 */
 		public function getAnnotationBySubject() {
-				if(!isset($this->count)){
-					$this->count = false;
+				if(!isset($this->count)) {
+						$this->count = false;
 				}
-				if(!isset($this->limit)){
-					$this->limit = false;
+				if(!isset($this->limit)) {
+						$this->limit = false;
+				}
+				if(!isset($this->page_limit)) {
+						$this->page_limit = false;
 				}
 				$params                 = array();
 				$params['type']         = $this->type;
 				$params['subject_guid'] = $this->subject_guid;
-				$params['count'] 		= $this->count;
-				$params['limit'] 		= $this->limit;
+				$params['count']        = $this->count;
+				$params['order_by']     = $this->order_by;
+				$params['limit']        = $this->limit;
+				$params['page_limit']   = $this->page_limit;
 				
 				return $this->searchAnnotation($params);
 		}
@@ -165,9 +200,9 @@ class OssnAnnotation extends OssnEntities {
 		/**
 		 * Delete Annotation
 		 *
-		 * @params $annotation = annotation_id
+		 * @param integer $annotation annotation_id
 		 *
-		 * @return bool;
+		 * @return boolean;
 		 */
 		public function deleteAnnotation($annotation) {
 				self::initAttributes();
@@ -190,9 +225,9 @@ class OssnAnnotation extends OssnEntities {
 		/**
 		 * Delete Annotation
 		 *
-		 * @params $annotation = annotation_id
+		 * @param integer $annotation annotation_id
 		 *
-		 * @return bool;
+		 * @return boolean
 		 */
 		public function deleteAnnotationByOwner($ownerguid) {
 				self::initAttributes();
@@ -210,7 +245,7 @@ class OssnAnnotation extends OssnEntities {
 		/**
 		 * Get newly create annoation id
 		 *
-		 * @return (int);
+		 * @return integer
 		 */
 		public function getAnnotationId() {
 				return $this->annotation_inserted;
@@ -218,17 +253,15 @@ class OssnAnnotation extends OssnEntities {
 		/**
 		 * Search annotation by its type, owner etc
 		 *
-		 * @param array $params A valid options in format:
-		 * 	  'search_type' => true(default) to performs matching on a per-character basis 
-		 * 					  false for performs matching on exact value.
-		 *	  'type' 		=> Valid annotation type
-		 *    'subject_guid'  => A valid subject guid, which results integer value
-		 *    'owner_guid'  => A valid owner guid, which results integer value
-		 *    'limit'		=> Result limit default, Default is 20 values
-		 *	  'order_by'    => To show result in sepcific order. There is no default order.
+		 * @param array   $params A valid options in format:
+		 * @param string  $params['search_type'] true(default) to performs matching on a per-character basis ,  false to performs matching on exact value.
+		 * @param string  $params['type']  Valid annotation type
+		 * @param integer $params['subject_guid']  A valid subject guid, which results integer value
+		 * @param integer $params['owner_guid'] A valid owner guid, which results integer value
+		 * @param integer $params['limit'] Result limit default, Default is 20 values
+		 * @param string  $params['order_by']  To show result in sepcific order. There is no default order.
 		 * 
 		 * reutrn array|false;
-		 *
 		 */
 		public function searchAnnotation(array $params = array()) {
 				self::initAttributes();
@@ -236,7 +269,7 @@ class OssnAnnotation extends OssnEntities {
 						return false;
 				}
 				//prepare default attributes
-				$default = array(
+				$default      = array(
 						'search_type' => true,
 						'type' => false,
 						'owner_guid' => false,
@@ -248,11 +281,12 @@ class OssnAnnotation extends OssnEntities {
 						'page_limit' => ossn_call_hook('pagination', 'page_limit', false, 10), //call hook for page limit
 						'count' => false
 				);
-				$options = array_merge($default, $params);
-				$wheres  = array();
-				
+				$options      = array_merge($default, $params);
+				$wheres       = array();
+				$params       = array();
+				$wheres_paris = array();
 				//validate offset values
-				if($options['limit'] !== false && $options['limit'] !== 0 && $options['page_limit'] !== 0) {
+				if($options['limit'] !== false && $options['limit'] !== 0 && $options['page_limit'] !== false && $options['page_limit'] !== 0) {
 						$offset_vals = ceil($options['limit'] / $options['page_limit']);
 						$offset_vals = abs($offset_vals);
 						$offset_vals = range(1, $offset_vals);
@@ -269,25 +303,69 @@ class OssnAnnotation extends OssnEntities {
 				if(!empty($options['annotation_id'])) {
 						$wheres[] = "a.id='{$options['annotation_id']}'";
 				}
-				if(!empty($params['type'])) {
+				if(!empty($options['type'])) {
 						$wheres[] = "a.type='{$options['type']}'";
-						$wheres[] = "e.subtype='{$options['type']}'";						
+						$wheres[] = "e.subtype='{$options['type']}'";
 				}
-				if(!empty($params['owner_guid'])) {
+				if(!empty($options['owner_guid'])) {
 						$wheres[] = "a.owner_guid ='{$options['owner_guid']}'";
 				}
-				if(!empty($params['subject_guid'])) {
+				if(!empty($options['subject_guid'])) {
 						$wheres[] = "a.subject_guid ='{$options['subject_guid']}'";
 				}
-				$wheres[] = "e.owner_guid=a.id";
+				if(isset($options['entities_pairs']) && is_array($options['entities_pairs'])) {
+						foreach($options['entities_pairs'] as $key => $pair) {
+								$operand = (empty($pair['operand'])) ? '=' : $pair['operand'];
+								if(!empty($pair['name']) && isset($pair['value']) && !empty($operand)) {
+										if(!empty($pair['value'])) {
+												$pair['value'] = addslashes($pair['value']);
+										}
+										$wheres_paris[] = "e{$key}.type='annotation'";
+										$wheres_paris[] = "e{$key}.subtype='{$pair['name']}'";
+										if(isset($pair['wheres']) && !empty($pair['wheres'])) {
+												$pair['wheres'] = str_replace('[this].', "emd{$key}.", $pair['wheres']);
+												$wheres_paris[] = $pair['wheres'];
+										} else {
+												$wheres_paris[] = "emd{$key}.value {$operand} '{$pair['value']}'";
+												
+										}
+										$params['joins'][] = "INNER JOIN ossn_entities as e{$key} ON e{$key}.owner_guid=a.id";
+										$params['joins'][] = "INNER JOIN ossn_entities_metadata as emd{$key} ON e{$key}.guid=emd{$key}.guid";
+								}
+						}
+						if(!empty($wheres_paris)) {
+								$wheres_entities = '(' . $this->constructWheres($wheres_paris) . ')';
+								$wheres[]        = $wheres_entities;
+						}
+				}
+				$params['joins'][] = "INNER JOIN ossn_entities as e ON e.owner_guid=a.id";
+				$params['joins'][] = "INNER JOIN ossn_entities_metadata as emd ON e.guid=emd.guid";
+				
 				$wheres[] = "e.type='annotation'";
 				$wheres[] = "emd.guid=e.guid";
-				//prepare search	
-				$params   = array();
 				
-				$params['from']     = 'ossn_annotations as a, ossn_entities as e , ossn_entities_metadata as emd';
+				if(isset($options['wheres']) && !empty($options['wheres'])) {
+						if(!is_array($options['wheres'])) {
+								$wheres[] = $options['wheres'];
+						} else {
+								foreach($options['wheres'] as $witem) {
+										$wheres[] = $witem;
+								}
+						}
+				}
+				if(isset($options['joins']) && !empty($options['joins']) && is_array($options['joins'])) {
+						foreach($options['joins'] as $jitem) {
+								$params['joins'][] = $jitem;
+						}
+				}
+				$distinct = '';
+				if($options['distinct'] === true) {
+						$distinct = "DISTINCT ";
+				}
+				//prepare search	
+				$params['from']     = 'ossn_annotations as a';
 				$params['params']   = array(
-						'a.id',
+						"{$distinct}a.id",
 						'a.time_created',
 						'a.owner_guid',
 						'a.subject_guid',
@@ -300,6 +378,10 @@ class OssnAnnotation extends OssnEntities {
 				$params['order_by'] = $options['order_by'];
 				$params['limit']    = $options['limit'];
 				
+				if(!$options['order_by']) {
+						$params['order_by'] = "a.id ASC";
+				}
+				
 				$this->get = $this->select($params, true);
 				
 				//prepare count data;
@@ -308,12 +390,12 @@ class OssnAnnotation extends OssnEntities {
 						unset($params['limit']);
 						$count           = array();
 						$count['params'] = array(
-								"count(*) as total"
+								"count({$distinct}a.id) as total"
 						);
 						$count           = array_merge($params, $count);
 						return $this->select($count)->total;
 				}
-					if($this->get) {
+				if($this->get) {
 						foreach($this->get as $annotation) {
 								$merge = array(
 										$annotation->type => $annotation->value
@@ -323,22 +405,78 @@ class OssnAnnotation extends OssnEntities {
 								
 								//get object vars and then merge into arrays
 								$values = get_object_vars($annotation);
-								$merge      = array_merge($values, $merge);
+								$merge  = array_merge($values, $merge);
 								
 								$this->owner_guid = $annotation->id;
-							   	$this->type = 'annotation';
-							    $entities   = $this->get_entities();
-								if(!empty($entities)){
-									foreach($entities as $entity){
-										$entities_data[$entity->subtype] = $entity->value;
-									}
-									$merge = array_merge($merge, $entities_data);
-									unset($entities_data);
+								$this->type       = 'annotation';
+								$this->order_by   = '';
+								$entities         = $this->get_entities();
+								if(!empty($entities)) {
+										foreach($entities as $entity) {
+												$entities_data[$entity->subtype] = $entity->value;
+										}
+										$merge = array_merge($merge, $entities_data);
+										unset($entities_data);
 								}
 								//construct object again
 								$annotations[] = arrayObject($merge, get_class($this));
 						}
 						return $annotations;
+				}
+				return false;
+		}
+		/**
+		 * Can change
+		 * Check if user can change the requested item or not
+		 *
+		 * @param object $user User
+		 * @return boolean
+		 */
+		public function canChange($user = '') {
+				if(empty($user)) {
+						$user = ossn_loggedin_user();
+				}
+				$allowed = false;
+				if(isset($user->guid) && $user instanceof OssnUser) {
+						if((isset($this->owner_guid) && $this->owner_guid == $user->guid) || ossn_isAdminLoggedin()) {
+								$allowed = true;
+						}
+				}
+				return ossn_call_hook('user', 'can:change', $this, $allowed);
+		}
+		/**
+		 * A annotation save method
+		 *
+		 * @return boolean
+		 */
+		public function save() {
+				if(isset($this->id) && !empty($this->id)) {
+						$params['table']  = 'ossn_annotations as a';
+						$params['names']  = array(
+								'owner_guid',
+								'subject_guid'
+						);
+						$params['values'] = array(
+								$this->owner_guid,
+								$this->subject_guid
+						);
+						$params['wheres'] = array(
+								"a.id='{$this->id}'"
+						);
+						if($this->update($params)) {
+								if(isset($this->data)) {
+										$owner_self = $this->owner_guid;
+										$type_self  = $this->type;
+										
+										$this->type       = 'annotation';
+										$this->owner_guid = $this->id;
+										parent::save();
+										
+										$this->owner_guid = $owner_self;
+										$this->type       = $type_self;
+								}
+								return true;
+						}
 				}
 				return false;
 		}

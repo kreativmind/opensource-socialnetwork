@@ -4,14 +4,13 @@
  *
  * @packageOpen Source Social Network
  * @author    Open Social Website Core Team <info@informatikon.com>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 /**
  * Register a language in system;
  * @param  string $code code of language;
- * @params: string $file file which contain languages;
  *
  * @last edit: $arsalanshah
  * @return void;
@@ -25,25 +24,23 @@ function ossn_register_language($code = '', $file) {
 
 /**
  * Get a languages strings;
- * @params: $code = code of language;
- * @params: $params = strings;
- * @last edit: $arsalanshah
- * @Reason: Initial;
- *
+ * @param string $code Code of language;
+ * @param array $params Translations;
+ * 
+ * @return void;
  */
 function ossn_register_languages($code, $params = array()) {
 		global $Ossn;
 		if(isset($Ossn->localestr[$code], $code)) {
 				$params = array_merge($Ossn->localestr[$code], $params);
 		}
-		return $Ossn->localestr[$code] = $params;
+		$Ossn->localestr[$code] = $params;
 }
 
 /**
  * Get registered language codes;
- * @last edit: $arsalanshah
- * @Reason: Initial;
- *
+ * 
+ * @return array
  */
 function ossn_locales() {
 		global $Ossn;
@@ -63,10 +60,10 @@ function ossn_locales() {
 
 /**
  * Print a locale;
- * @params $id = id of locale;
- * @last edit: $arsalanshah
- * @Reason: Initial;
+ * @param string $id Id of locale;
+ * @param array $args Array;
  *
+ * @return string
  */
 function ossn_print($id = '', $args = array()) {
 		global $Ossn;
@@ -105,14 +102,39 @@ function ossn_default_load_locales() {
  *
  * @return string|false or false
  */
-function ossn_load_json_locales() {
+function ossn_load_json_locales($lcode = "") {
 		global $Ossn;
-		$code = ossn_site_user_lang_code();
-		$json = json_encode($Ossn->localestr[$code]);
+		$code = ossn_site_settings('language');
+		if(!empty($lcode)) {
+				$code = $lcode;
+		}
+		if(!isset($Ossn->localestr[$code])) {
+				return false;
+		}
+		$isUTF8 = function($str) {
+				return preg_match("/^(
+         [\x09\x0A\x0D\x20-\x7E]            # ASCII
+       | [\xC2-\xDF][\x80-\xBF]             # non-overlong 2-byte
+       |  \xE0[\xA0-\xBF][\x80-\xBF]        # excluding overlongs
+       | [\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}  # straight 3-byte
+       |  \xED[\x80-\x9F][\x80-\xBF]        # excluding surrogates
+       |  \xF0[\x90-\xBF][\x80-\xBF]{2}     # planes 1-3
+       | [\xF1-\xF3][\x80-\xBF]{3}          # planes 4-15
+       |  \xF4[\x80-\x8F][\x80-\xBF]{2}     # plane 16
+      )*$/x", $str);
+		};
+		foreach($Ossn->localestr[$code] as $key => $item) {
+				if(!$isUTF8($item)) {
+						$strings[$key] = utf8_encode($item);
+				} else {
+						$strings[$key] = $item;
+				}
+		}
+		$json = json_encode($strings, JSON_UNESCAPED_UNICODE);
 		if($json) {
 				return $json;
 		}
-		return false;
+		return json_encode(array());
 }
 /**
  * Return an array of installed translations as an associative
@@ -121,14 +143,15 @@ function ossn_load_json_locales() {
  * @return array
  */
 
-function ossn_get_installed_translations() {
+function ossn_get_installed_translations($percentage = true) {
 		global $Ossn;
 		$installed = array();
+		ossn_load_available_languages();
 		
 		foreach($Ossn->locale as $k => $v) {
 				$installed[$k] = ossn_print($k, array(), $k);
 				$completeness  = ossn_get_language_completeness($k);
-				if(($completeness < 100) && ($k != 'en')) {
+				if(($completeness < 100) && ($k != 'en') && $percentage !== false) {
 						$installed[$k] .= " (" . $completeness . "% " . ossn_print('ossn:language:complete') . ")";
 				}
 		}
@@ -396,23 +419,3 @@ function ossn_get_available_languages() {
 		$langs = array_merge($com_langs, $core_langs);
 		return array_unique($langs);
 }
-/**
- * Load a site language
- *
- * If user have different language then site language it will return user language
- *
- * @return string
- */
- function ossn_site_user_lang_code(){
-	 $lang =  ossn_site_settings('language');
-	 if(ossn_isLoggedin()){
-		 $user = ossn_loggedin_user();
-		 if(isset($user->language)){
-			 if(in_array($user->language, ossn_get_available_languages())){
-				 	$lang = $user->language;
-			 }
-		 }
-	 }
-	 return $lang;
- }
- 

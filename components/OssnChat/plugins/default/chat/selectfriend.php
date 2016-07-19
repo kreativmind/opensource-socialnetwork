@@ -2,11 +2,11 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 $user = $params['user'];
 if (OssnChat::getChatUserStatus($user->guid) == 'online') {
@@ -61,11 +61,13 @@ if ($total > 0) {
                     if (ossn_loggedin_user()->guid == $message->message_from) {
                         $vars['message'] = $message->message;
                         $vars['time'] = $message->time;
+                        $vars['id'] = $message->id;
                         echo ossn_plugin_view('chat/message-item-send', $vars);
                     } else {
                         $vars['reciever'] = ossn_user_by_guid($message->message_from);
                         $vars['message'] = $message->message;
                         $vars['time'] = $message->time;
+                        $vars['id'] = $message->id;
                         echo ossn_plugin_view('chat/message-item-received', $vars);
                     }
                 }
@@ -86,8 +88,7 @@ if ($total > 0) {
                <div class="ossn-chat-sending-icon"></div>
             </div>
             <div class="ossn-chat-inline-table ossn-chat-icon-smile-set">
-                <div class="ossn-chat-inline-table ossn-chat-icon-smile"
-                     onClick="Ossn.ChatShowSmilies(<?php echo $user->guid; ?>);" style="margin-top: 5px;"></div>
+                <div class="ossn-chat-icon-smile" onClick="Ossn.ChatShowSmilies(<?php echo $user->guid; ?>);"></div>
             </div>
              <?php echo ossn_plugin_view('input/security_token'); ?>
             <input type="hidden" name="to" value="<?php echo $user->guid; ?>"/>
@@ -95,7 +96,7 @@ if ($total > 0) {
         <div class="ossn-chat-new-message" <?php echo $style; ?>><?php echo $total; ?></div>
         <div id="ossnchat-ustatus-<?php echo $user->guid; ?>" class="<?php echo $status; ?>">
             <div class="ossn-chat-inner-text">
-                <?php echo strl($user->fullname, 20); ?>
+                <?php echo $user->fullname; ?>
             </div>
         </div>
     </div>

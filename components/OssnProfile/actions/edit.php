@@ -2,11 +2,11 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 $entity = ossn_user_by_username(input('username'));
 if(!$entity){
@@ -18,9 +18,10 @@ $user['email'] = input('email');
 $user['gender'] = input('gender');
 $user['username'] = input('username');
 
-$user['bdd'] = input('birthday');
-$user['bdm'] = input('birthm');
-$user['bdy'] = input('birthy');
+$fields = ossn_user_fields_names();
+foreach($fields['required'] as $field){
+	$user[$field] = input($field);
+}
 if (!empty($user)) {
     foreach ($user as $field => $value) {
         if (empty($value)) {
@@ -30,7 +31,6 @@ if (!empty($user)) {
     }
 }
 $password = input('password');
-$user['birthdate'] = "{$user['bdd']}/{$user['bdm']}/{$user['bdy']}";
 
 $OssnUser = new OssnUser;
 $OssnUser->password = $password;
@@ -90,16 +90,27 @@ if (!empty($password)) {
         $salt
     );
 }
-
+$language = input('language');
+$success  = ossn_print('user:updated');
+if(!empty($language) && in_array($language, ossn_get_available_languages())){
+	$lang = $language;
+} else {
+	$lang = 'en';
+}
 //save
 if ($OssnDatabase->update($params)) {
     //update entities
+	$user_get->data = new stdClass;
     $guid = $user_get->guid;
     if (!empty($guid)) {
-        $user_get->data->gender = $user['gender'];
-        $user_get->data->birthdate = $user['birthdate'];
+		foreach($fields as $items){
+				foreach($items as $field){
+						$user_get->data->{$field} = $user[$field];
+				}
+		}
+		$user_get->data->language = $lang;
         $user_get->save();
     }
-    ossn_trigger_message(ossn_print('user:updated'), 'success');
+    ossn_trigger_message($success, 'success');
     redirect(REF);
 } 

@@ -4,62 +4,56 @@
  *
  * @packageOpen Source Social Network
  * @author    Open Social Website Core Team <info@informatikon.com>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
-$wall = new OssnWall;
+$wall       = new OssnWall;
+
 $accesstype = ossn_get_homepage_wall_access();
-if($accesstype == 'public' || ossn_isAdminLoggedin()){
-	$posts = $wall->GetPosts();	
-	$count = $wall->GetPosts(array('count' => true));
-} elseif($accesstype == 'friends'){
- 	$posts = $wall->getFriendsPosts();
+$loggedinuser = ossn_loggedin_user();
+
+// allow admin to watch ALL postings independant of Wall setting
+if($loggedinuser->canModerate()) {
+	$posts = $wall->getAllPosts(array(
+				'type' => 'user',
+				'distinct' => true,
+	));
+	$count = $wall->getAllPosts(array(
+			'type' => 'user',
+			'count' => true,
+			'distinct' => true,
+	));
+// wall mode: all site posts
+} elseif($accesstype == 'public') {
+	$posts = $wall->getPublicPosts(array(
+				'type' => 'user',
+				'distinct' => true,
+	));
+	$count = $wall->getPublicPosts(array(
+			'type' => 'user',
+			'count' => true,
+			'distinct' => true,
+	));
+// wall mode: friends-only posts	
+} elseif($accesstype == 'friends') {
+	$posts = $wall->getFriendsPosts(array(
+				'type' => 'user',
+				'distinct' => true,
+	));
+	$count = $wall->getFriendsPosts(array(
+			'type' => 'user',
+			'count' => true,
+			'distinct' => true,
+	));
 }
-if ($posts) {
-    foreach ($posts as $post) {
-		if(!isset($post->poster_guid)){
-			$post = ossn_get_object($post->guid);
+
+if($posts) {
+		foreach($posts as $post) {
+				$item = ossn_wallpost_to_item($post);
+				echo ossn_wall_view_template($item);
 		}
-        $data = json_decode(html_entity_decode($post->description));
-        $text = ossn_restore_new_lines($data->post, true);
-        $location = '';
-
-        if (isset($data->location)) {
-            $location = '- ' . $data->location;
-        }
-        if (isset($post->{'file:wallphoto'})) {
-            $image = str_replace('ossnwall/images/', '', $post->{'file:wallphoto'});
-        } else {
-            $image = '';
-        }
-
-        $user = ossn_user_by_guid($post->poster_guid);
-        if ($post->access == OSSN_FRIENDS) {
-            if (ossn_user_is_friend(ossn_loggedin_user()->guid, $post->owner_guid) || ossn_loggedin_user()->guid == $post->owner_guid) {
-                echo  ossn_plugin_view('wall/templates/activity-item', array(
-                    'post' => $post,
-                    'friends' => explode(',', $data->friend),
-                    'text' => $text,
-                    'location' => $location,
-                    'user' => $user,
-                    'image' => $image,
-
-                ));
-            }
-        }
-        if ($post->access == OSSN_PUBLIC) {
-            echo ossn_plugin_view('wall/templates/activity-item', array(
-                'post' => $post,
-                'friends' => explode(',', $data->friend),
-                'text' => $text,
-                'location' => $location,
-                'user' => $user,
-                'image' => $image,
-            ));
-        }
-        unset($data->friend);
-    }
-
+		
 }
+
 echo ossn_view_pagination($count);

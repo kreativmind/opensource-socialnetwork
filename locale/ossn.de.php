@@ -2,11 +2,11 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 
 $de = array(
@@ -24,7 +24,7 @@ $de = array(
     'register:ok:message' => "Dein Benutzer-Konto wurde nun eingerichtet, und Du hast eine Aktivierungs-Email erhalten. Sieh in Deinem Spam-Ordner nach, wenn Du die Nachricht im Posteingang nicht findest.",
 
     'copyright' => '&copy; COPYRIGHT',
-    'powered' => 'Powered by Open Source Social Network',
+    'powered' => 'Powered by the Open Source Social Network.',
 	
     'name' => 'Name',
     'birthdate' => 'Geburtstag',
@@ -42,7 +42,7 @@ $de = array(
     'account:create:notice' => 'Mit der Anmeldung akzeptierst Du unsere',
     'gender' => 'Geschlecht',
 
-    'acount:settings' => 'Einstellungen',
+    'account:settings' => 'Einstellungen',
     'page:error' => 'Seite nicht gefunden',
     'page:error:text' => 'Oops! Die von Dir angeforderte Seite wurde nicht gefunden!',
     'page:error:heading' => '404',
@@ -133,8 +133,8 @@ Falls der Link nicht anklickbar ist, kopiere ihn einfach in Deinen Browser.
     'login:error' => 'Fehler bei der Anmeldung: Der Benutzer-Name und/oder das Passwort ist falsch!',
     'login:error:sub' => "Bitte überprüfe beides noch einmal, achte auf Groß- und Klein-Schreibung und probiere es erneut.",
     'login:success' => 'Du bist nun angemeldet',
-    'com:installed' => 'Die Komponente wurde erfolgreich installiert',
-    'com:install:error' => 'Die Komponente konnte nicht installiert werden, überprüfe bitte das zip-Archiv',
+    'com:installed' => 'Die Komponente wurde in die Komponentenliste hochgeladen. Du kannst sie nun auf der Seite "Komponenten" aktivieren.',
+    'com:install:error' => 'Die Komponente konnte nicht hochgeladen werden. Überprüfe ob es sich um ein gültiges Archiv handelt.',
     'settings:saved' => 'Die Einstellungen wurden gespeichert',
     'com:deleted' => 'Die Komponente wurde gelöscht',
     'com:delete:error' => 'Die Komponente konnte nicht gelöscht werden - versuche es bitte erneut',
@@ -183,7 +183,7 @@ Falls der Link nicht anklickbar ist, kopiere ihn einfach in Deinen Browser.
     'upgrade:file:load:error' => 'Die Aktualisierungs-Datei kann nicht geladen werden',
     'upgrade:success' => "Ossn wurde erfolgreich auf Version %s aktualisiert",
     'upgrade:failed' => "Die Aktualisierung auf Version % ist fehlgeschlagen",
-    'upgrade:not:available' => 'Keine Aktualisierungen vorhangen',
+    'upgrade:not:available' => 'Keine Aktualisierungen vorhanden',
 
     'site:login' => 'Anmelden',
     /* Page errors */
@@ -221,7 +221,7 @@ Um Dein Passwort zurückzusetzen klicke bitte auf den folgenden Link oder kopier
 	'ossn:exception:title' => 'Ein System-Fehler ist aufgetreten. Versuche es später nochmal. Benachrichtige den Administrator bei %s',
 	'ossn:securitytoken:failed' => 'Das ist eine unerlaubte Aktion.',
 	'ossn:component:delete:exception' => 'Bist Du sicher, dass Du diese Komponente löschen willst?',
-	'ossn:user:delete:exception' => 'Sind Sie sicher, dass Sie diesen Benutzer löschen möchten?',
+	'ossn:user:delete:exception' => 'Bist Du sicher, dass Du diesen Benutzer löschen möchtest?',
 	
 	//access
 	'title:access:1' => 'Privat',
@@ -277,11 +277,30 @@ Um Dein Passwort zurückzusetzen klicke bitte auf den folgenden Link oder kopier
 	'admin:user:validated' => 'Das Benutzer-Konto wurde bestätigt',
 	'admin:user:validate:error' => 'Das Benutzer-Konto konnte nicht bestätigt werden',
 	
-	//v3.0 
-	'my:files:version' => 'Mein Ossn Dateien Fassung',
-	'cache:flush:error' => 'Can not flush cache, make sure cache is enabled in cache settings',
-	'cache:flushed' => 'Cache flushed successfully',	
-    
+	//v3.0
+	//Administration
+	'my:files:version' => 'Meine Ossn Dateien Fassung',
+	'cache:flush:error' => 'Der Cache konnte nicht geleert werden. Stelle sicher, dass er bei den Cache Einstellungen aktiviert ist',
+	'cache:flushed' => 'Der Cache wurde erfolgreich geleert',
+	'ossn:version' => 'OSSN Version', 
+	'php:extension' => 'PHP Erweiterung',
+	'php:version' => 'PHP Version',
+	'php:function' => 'PHP Funktion',
+	'admin:old:com' => "Die Datei ossn_com.xml deutet auf eine veraltete Version hin. Bitte aktualisiere die Komponente '%s'.",
+	'admin:old:theme' => "Die Datei ossn_theme.xml deutet auf eine veraltete Version hin. Bitte aktualisiere das Thema '%s'.",
+	'admin:button:disabled' => 'Deaktiviert',
+	'admin:flush:cache' => 'Cache leeren',
+	'admin:com:version' => 'Version',
+	'admin:com:author' => 'Autor',
+	'admin:com:author:url' => 'URL des Autors',
+	'admin:com:license' => 'Lizenz',
+	'admin:com:requirements' => 'Voraussetzungen',
+	'admin:com:availability' => 'Verfügbarkeit',
+	'ossn:exception:make:sure' => 'Bist Du sicher?',
+	'ossn:premium' => 'Premium Version',
+	'datepicker:days' => "So, Mo, Di, Mi, Do, Fr, Sa",
+	'datepicker:months' => "Jan., Feb., März, Apr., Mai, Juni, Juli, Aug., Sept., Okt., Nov., Dez.",
+	
 	/*
        * List of ISO 639-1 language codes
        * http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
@@ -428,4 +447,4 @@ Um Dein Passwort zurückzusetzen klicke bitte auf den folgenden Link oder kopier
     "zh" => "Chinese",
     "zu" => "Zulu"
 );
-ossn_register_languages('de', $de); 
+ossn_register_languages('de', $de);

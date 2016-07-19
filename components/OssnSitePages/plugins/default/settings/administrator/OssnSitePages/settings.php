@@ -4,9 +4,9 @@
  *
  * @packageOpen Source Social Network
  * @author    Open Social Website Core Team <info@informatikon.com>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 ?>
 <div class="row margin-bottom-10 margin-top-10">
@@ -40,7 +40,6 @@ switch ($settings) {
         );
         echo ossn_view_form('about', $params, false);
         break;
-    default:
     case 'privacy':
         $params = array(
             'action' => ossn_site_url() . 'action/sitepage/edit/privacy',
@@ -48,8 +47,4 @@ switch ($settings) {
         );
         echo ossn_view_form('privacy', $params, false);
         break;
-    default:
-        break;
-
 }
-?>

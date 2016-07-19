@@ -2,11 +2,11 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 
 /**
@@ -56,6 +56,7 @@ function ossn_trigger_js_cache($cache = '') {
 		if(!isset($Ossn->js)) {
 				return false;
 		}
+		header('Content-Type: text/html; charset=utf-8');
 		foreach($Ossn->js as $name => $file) {
 				$cache_file = "{$dir}js/{$cache}/view/{$name}.js";
 				$js         = JSMin::minify(ossn_plugin_view($file));
@@ -95,9 +96,9 @@ function ossn_trigger_language_cache($cache) {
 		
 		$coms = new OssnComponents;
 		$comlist = $coms->getActive();
-		$comdir  = ossn_route()->com;		
+		$comdir  = ossn_route()->com;	
 		
-		header('Content-Type: text/html; charset=utf-8');
+		header('Content-Type: application/json; charset=utf-8');
 		foreach($available_languages as $lang) {
 				//load all laguages
 				foreach($Ossn->locale[$lang] as $item){
@@ -114,10 +115,10 @@ function ossn_trigger_language_cache($cache) {
 					}
 				}
 				if(isset($Ossn->localestr[$lang])) {
-						$json = json_encode($Ossn->localestr[$lang], JSON_UNESCAPED_UNICODE);
+						$json = ossn_load_json_locales($lang);
 						$json = "var OssnLocale = $json";
 						$cache_file = "{$dir}js/{$cache}/view/ossn.{$lang}.language.js";
-						file_put_contents($cache_file, $json);
+						file_put_contents($cache_file, "\xEF\xBB\xBF" . $json);
 				}
 		}
 }

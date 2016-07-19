@@ -4,9 +4,9 @@
  *
  * @packageOpen Source Social Network
  * @author    Open Social Website Core Team <info@informatikon.com>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 define('__OSSN_PROFILE__', ossn_route()->com . 'OssnProfile/');
 require_once(__OSSN_PROFILE__ . 'classes/OssnProfile.php');
@@ -14,7 +14,7 @@ require_once(__OSSN_PROFILE__ . 'classes/OssnProfile.php');
  * Initialize Profile Component
  *
  * @return void;
- * @access private;
+ * @access private
  */
 function ossn_profile() {
 		//pages
@@ -30,12 +30,20 @@ function ossn_profile() {
 				ossn_register_action('profile/cover/upload', __OSSN_PROFILE__ . 'actions/cover/upload.php');
 				ossn_register_action('profile/cover/reposition', __OSSN_PROFILE__ . 'actions/cover/reposition.php');
 				ossn_register_action('profile/edit', __OSSN_PROFILE__ . 'actions/edit.php');
+				
+				ossn_register_menu_item('topbar_dropdown', array(
+						'name' => 'account_settings',
+						'text' => ossn_print('account:settings'),
+						'href' => ossn_loggedin_user()->profileURL('/edit')
+				));
 		}
 		//callback
 		ossn_register_callback('page', 'load:search', 'ossn_search_users_link');
 		ossn_register_callback('page', 'load:profile', 'ossn_profile_load_event');
 		ossn_register_callback('delete', 'profile:photo', 'ossn_profile_delete_photo_wallpost');
 		ossn_register_callback('delete', 'profile:cover:photo', 'ossn_profile_delete_photo_wallpost');
+		//show viewallcomments link #871
+		ossn_register_callback('comment', 'entityextra:menu', 'ossn_profile_images_allcomments');
 		
 		//hooks
 		ossn_add_hook('newsfeed', "sidebar:left", 'profile_photo_newsefeed', 1);
@@ -53,30 +61,29 @@ function ossn_profile() {
 		//subpages of profile
 		ossn_profile_subpage('friends');
 		ossn_profile_subpage('edit');
+		
+		if(ossn_isLoggedin()) {
+				$user_loggedin = ossn_loggedin_user();
+				$icon          = ossn_site_url('components/OssnProfile/images/friends.png');
+				ossn_register_sections_menu('newsfeed', array(
+						'text' => ossn_print('user:friends'),
+						'url' => $user_loggedin->profileURL('/friends'),
+						'section' => 'links',
+						'icon' => $icon
+				));
+		}
 }
 /**
  * Add users link in search page
  *
  * @return void;
- * @access private;
+ * @access private
  */
 function ossn_search_users_link($event, $type, $params) {
 		$url = OssnPagination::constructUrlArgs(array(
 				'type'
 		));
-		ossn_register_menu_link('search:users', 'search:users', "search?type=users{$url}", 'search');
-}
-
-if(ossn_isLoggedin()) {
-		$user_loggedin = ossn_loggedin_user();
-		$icon          = ossn_site_url('components/OssnProfile/images/friends.png');
-		ossn_register_sections_menu('newsfeed', array(
-				'text' => ossn_print('user:friends'),
-				'url' => $user_loggedin->profileURL('/friends'),
-				'section' => 'links',
-				'icon' => $icon
-		));
-		
+		ossn_register_menu_link('users', 'search:users', "search?type=users{$url}", 'search');
 }
 /**
  * Add a timeline, friends tab in profile
@@ -163,13 +170,18 @@ function profile_edit_page($hook, $type, $return, $params) {
  * @return string data;
  */
 function profile_search_handler($hook, $type, $return, $params) {
-		$Pagination = new OssnPagination;
-		$users      = new OssnUser;
-		$data       = $users->searchUsers($params['q']);
-		$Pagination->setItem($data);
-		$user['users'] = $Pagination->getItem();
+		$Pagination    = new OssnPagination;
+		$users         = new OssnUser;
+		$data          = $users->searchUsers(array(
+				'wheres' => "CONCAT(u.first_name, ' ', u.last_name) LIKE '%{$params['q']}%'"
+		));
+		$count         = $users->searchUsers(array(
+				'wheres' => "CONCAT(u.first_name, ' ', u.last_name) LIKE '%{$params['q']}%'",
+				'count' => true
+		));
+		$user['users'] = $data;
 		$search        = ossn_plugin_view('output/users', $user);
-		$search .= $Pagination->pagination();
+		$search .= ossn_view_pagination($count);
 		if(empty($data)) {
 				return ossn_print('ossn:search:no:result');
 		}
@@ -187,8 +199,13 @@ function profile_modules($h, $t, $module, $params) {
 		/*$content = ossn_view("components/OssnProfile/modules/about", $user);
 		$modules[] = ossn_view_widget('profile/widget', 'ABOUT', $content);*/
 		
-		$content   = ossn_plugin_view("profile/modules/friends", $user);
-		$modules[] = ossn_view_widget('profile/widget', strtoupper(ossn_print('friends')), $content);
+		$content = ossn_plugin_view("profile/modules/friends", $user);
+		$title   = ossn_print('friends');
+		
+		$modules[] = ossn_view_widget(array(
+				'title' => $title,
+				'contents' => $content
+		));
 		
 		return $modules;
 }
@@ -225,7 +242,11 @@ function profile_page_handler($page) {
 				return false;
 		}
 		$title               = $user->fullname;
-		$contents['content'] = ossn_plugin_view('profile/pages/profile', $params);
+		$vars                = array(
+				'user' => $user
+		);
+		$content             = ossn_plugin_view('profile/pages/profile', $params);
+		$contents['content'] = ossn_call_hook('profile', 'load:content', $vars, $content);
 		$content             = ossn_set_page_layout('contents', $contents);
 		echo ossn_view_page($title, $content);
 }
@@ -261,11 +282,11 @@ function get_profile_photo($user, $size) {
 		
 		$photo = $user->getProfilePhoto();
 		$etag  = $photo->guid . $photo->time_created;
-        
-		if(isset($photo->time_created)){
-		    header("Last-Modified: ".gmdate('D, d M Y H:i:s \G\M\T', $photo->time_created)); 
+		
+		if(isset($photo->time_created)) {
+				header("Last-Modified: " . gmdate('D, d M Y H:i:s \G\M\T', $photo->time_created));
 		}
-    	header("Etag: $etag"); 
+		header("Etag: $etag");
 		
 		if(isset($photo->guid) && isset($_SERVER['HTTP_IF_NONE_MATCH']) && trim($_SERVER['HTTP_IF_NONE_MATCH']) == "\"$etag\"") {
 				header("HTTP/1.1 304 Not Modified");
@@ -281,6 +302,10 @@ function get_profile_photo($user, $size) {
 		} else {
 				$datadir = ossn_default_theme() . "images/nopictures/users/{$size}.jpg";
 		}
+		$datadir  = ossn_call_hook('profile', 'load:picture', array(
+				'user' => $user,
+				'size' => $size
+		), $datadir);
 		$filesize = filesize($datadir);
 		header("Content-type: image/jpeg");
 		header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', strtotime("+6 months")), true);
@@ -336,11 +361,21 @@ function get_cover_photo($user, $params = array()) {
  * @return image
  */
 function cover_page_handler($cover) {
+		if($cover[0] == 'err1') {
+				echo ossn_plugin_view('output/ossnbox', array(
+						'title' => ossn_print('profile:cover:err1'),
+						'contents' => ossn_print('profile:cover:err1:detail'),
+						'callback' => false
+				));
+				return true;
+		}
 		if(isset($cover[0])) {
 				$user = ossn_user_by_username($cover[0]);
 				if(!empty($user->guid)) {
 						get_cover_photo($user, $cover);
 				}
+		} else {
+				ossn_error_page();
 		}
 }
 /**
@@ -371,8 +406,9 @@ function ossn_notification_like_profile_photo($hook, $type, $return, $params) {
 		$baseurl        = ossn_site_url();
 		$user           = ossn_user_by_guid($notif->poster_guid);
 		$user->fullname = "<strong>{$user->fullname}</strong>";
+		$iconURL        = $user->iconURL()->small;
 		
-		$img = "<div class='notification-image'><img src='{$baseurl}/avatar/{$user->username}/small' /></div>";
+		$img = "<div class='notification-image'><img src='{$iconURL}' /></div>";
 		if(preg_match('/like/i', $notif->type)) {
 				$type = 'like';
 		}
@@ -451,6 +487,37 @@ function ossn_profile_delete_photo_wallpost($callback, $type, $params) {
 		if(isset($params['photo']->guid) && !empty($params['photo']->guid)) {
 				$profile = new OssnProfile;
 				$profile->deletePhotoWallPost($params['photo']->guid);
+		}
+}
+/** 
+ * Show view all comments menu on profile image and cover
+ *
+ * @param string $callback Name of callback
+ * @param string $type A callback type
+ * @param array  $params A option values
+ * 
+ * @return boolean|void
+ */
+function ossn_profile_images_allcomments($callback, $type, $params) {
+		if(!class_exists('OssnComments')) {
+				return false;
+		}
+		ossn_unregister_menu('commentall', 'entityextra');
+		switch($params['entity']->subtype) {
+				case 'file:profile:photo':
+						$url = ossn_site_url("photos/user/view/{$params['entity']->guid}");
+						break;
+				case 'file:profile:cover':
+						$url = ossn_site_url("photos/cover/view/{$params['entity']->guid}");
+						break;
+		}
+		$comment = new OssnComments;
+		if($comment->countComments($params['entity']->guid, 'entity') > 5) {
+				ossn_register_menu_item('entityextra', array(
+						'name' => 'commentall',
+						'href' => $url,
+						'text' => ossn_print('comment:view:all')
+				));
 		}
 }
 ossn_register_callback('ossn', 'init', 'ossn_profile');

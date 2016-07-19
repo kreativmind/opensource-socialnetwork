@@ -2,11 +2,11 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 
 
@@ -52,6 +52,18 @@ if (OssnInstallation::isCon_WRITEABLE()) {
 } else {
     echo '<div class="ossn-installation-message ossn-installation-fail">'.ossn_installation_print('ossn:install:config:error').'</div>';
     $error[] = 'permission:configuration';
+}
+if(OssnInstallation::allowUrlFopen()){
+    echo '<div class="ossn-installation-message ossn-installation-success">'.ossn_installation_print('ossn:install:allowfopenurl').'</div>';	
+} else {
+    echo '<div class="ossn-installation-message ossn-installation-fail">'.ossn_installation_print('ossn:install:allowfopenurl:error').'</div>';
+    $error[] = 'allowfopenurl:error';	
+}
+if(OssnInstallation::isZipClass()){
+	    echo '<div class="ossn-installation-message ossn-installation-success">'.ossn_installation_print('ossn:install:ziparchive').'</div>';	
+} else {
+    echo '<div class="ossn-installation-message ossn-installation-fail">'.ossn_installation_print('ossn:install:ziparchive:error').'</div>';
+    $error[] = 'ziparchive:error';		
 }
 echo '<br />';
 if (!isset($error)) {

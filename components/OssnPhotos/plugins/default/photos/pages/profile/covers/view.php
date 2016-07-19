@@ -2,11 +2,11 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 $image = $params['entity'];
 $img = str_replace('profile/cover/', '', $image->value);
@@ -16,7 +16,7 @@ $img = str_replace('profile/cover/', '', $image->value);
     <br/>
     <table border="0" class="ossn-photo-viewer">
         <tr>
-            <td class="image-block" style="text-align: center;width:465px;min-height:200px;">
+            <td class="image-block">
                 <img
                     src="<?php echo ossn_site_url("album/getcover/") . $image->owner_guid; ?>/<?php echo $img; ?>"/>
             </td>
@@ -26,20 +26,11 @@ $img = str_replace('profile/cover/', '', $image->value);
 </div>
 <br/>
 <br/>
-<div class="comments-likes ossn-photos-comments" style="width:525px;">
-    <?php
-    if (ossn_is_hook('post', 'likes:entity')) {
-        $entity['entity_guid'] = $params['photo'];
-        echo ossn_call_hook('post', 'likes:entity', $entity);
-    }
-    ?>
-    <?php
-    if (ossn_is_hook('post', 'comments:entity')) {
-        $entity['entity_guid'] = $params['photo'];
-        echo ossn_call_hook('post', 'comments:entity', $entity);
-    }
-    ?>
-</div>
+<?php
+	$vars['entity'] = $image;
+	$vars['full_view'] = true;
+	echo ossn_plugin_view('entity/comment/like/share/view', $params);
+?>
 <div class="ossn-photo-view-controls">
     <?php
     if (ossn_is_hook('cover:view', 'profile:controls')) {

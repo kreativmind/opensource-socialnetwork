@@ -2,22 +2,23 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 class OssnEntities extends OssnDatabase {
 		/**
 		 * Initialize the objects.
 		 *
-		 * @return void;
+		 * @return void
 		 */
 		private function initAttributes() {
 				$this->data         = new stdClass;
 				$this->time_created = time();
-				$this->time_updated = '';
+				//OssnDatabaseException' with message 'Incorrect integer value #904
+				$this->time_updated = 0;
 				$this->active       = 1;
 				
 				if(empty($this->permission)) {
@@ -65,14 +66,14 @@ class OssnEntities extends OssnDatabase {
 		/**
 		 * Add new entity.
 		 *
-		 * @params = $this->type => entity type; (this usually is user, object, annotation, site)
-		 *           $this->subtype => entity subtype;
-		 *           $this->entity_permission => OSSN_ACCESS
-		 *           $this->active = is entity is active or not
-		 *           $this->value = data you want to insert
-		 *           $this->owner_guid = entity owner guid
+		 * Requires object  $this->type => entity type; (this usually is user, object, annotation, site)
+		 *           		$this->subtype => entity subtype;
+		 *           		$this->entity_permission => OSSN_ACCESS
+		 *           		$this->active = is entity is active or not
+		 *          	 	$this->value = data you want to insert
+		 *           		$this->owner_guid = entity owner guid
 		 *
-		 * @return bool;
+		 * @return boolean
 		 */
 		public function add() {
 				self::initAttributes();
@@ -115,13 +116,15 @@ class OssnEntities extends OssnDatabase {
 		/**
 		 * Get Entity.
 		 *
-		 * @params = $this->entity_guid => entity guid in database;
+		 * Requires object $this->entity_guid Entity guid in database;
 		 *
-		 * @return (object);
+		 * @return object|false
 		 */
 		public function get_entity() {
 				self::initAttributes();
-				
+				if(empty($this->entity_guid)) {
+						return false;
+				}
 				$params           = array();
 				$params['from']   = 'ossn_entities as e';
 				$params['params'] = array(
@@ -135,14 +138,14 @@ class OssnEntities extends OssnDatabase {
 						'e.type',
 						'e.subtype'
 				);
-				$params['joins']  = "JOIN ossn_entities_metadata as emd ON e.guid=emd.guid";
+				$params['joins']  = "INNER JOIN ossn_entities_metadata as emd ON e.guid=emd.guid";
 				$params['wheres'] = array(
 						"e.guid ='{$this->entity_guid}'"
 				);
 				
 				$data = $this->select($params);
 				if($data) {
-						$entity = arrayObject($data, $this->types[$this->type]);
+						$entity = arrayObject($data, get_class($this));
 						return $entity;
 				}
 		}
@@ -150,50 +153,57 @@ class OssnEntities extends OssnDatabase {
 		/**
 		 * Update Entity in database.
 		 *
-		 * @required (object)->data
+		 * Requires $object->data
 		 *
-		 * @return bool;
+		 * @return boolean
 		 */
 		public function save() {
 				if(!empty($this->owner_guid)) {
-						$this->datavars = $this->get_data_vars();
-						foreach($this->get_entities() as $entity) {
-								if(isset($this->datavars[$entity->subtype])) {
-										$params['table']  = 'ossn_entities_metadata';
-										$params['names']  = array(
-												'value'
-										);
-										$params['values'] = array(
-												$this->datavars[$entity->subtype]
-										);
-										$params['wheres'] = array(
-												"guid='{$entity->guid}'"
-										);
-										if($this->update($params)) {
-												$params['table']  = 'ossn_entities';
+						$this->datavars   = $this->get_data_vars();
+						$this->page_limit = false;
+						$entities         = $this->get_entities();
+						if($entities) {
+								foreach($entities as $entity) {
+										if(isset($this->datavars[$entity->subtype])) {
+												$params['table']  = 'ossn_entities_metadata';
 												$params['names']  = array(
-														'time_updated'
+														'value'
 												);
 												$params['values'] = array(
-														time()
+														$this->datavars[$entity->subtype]
 												);
 												$params['wheres'] = array(
 														"guid='{$entity->guid}'"
 												);
-												$this->update($params);
+												if($this->update($params)) {
+														$params['table']  = 'ossn_entities';
+														$params['names']  = array(
+																'time_updated'
+														);
+														$params['values'] = array(
+																time()
+														);
+														$params['wheres'] = array(
+																"guid='{$entity->guid}'"
+														);
+														$this->update($params);
+												}
 										}
 								}
 						}
 						// i don't think we need to add new data on save $arsalanshah; v1.x to 2.x
 						// added again in v3.0 $arsalanshah
 						//code re arrange 1st July 2015 $arsalanshah
-						foreach($this->datavars as $vars => $value) {
-								if(!in_array($vars, $this->get_data_dbvars())) {
-										$this->subtype = $vars;
-										$this->value   = $value;
-										$this->add();
+						if(!empty($this->datavars)) {
+								$data_dbvars = $this->get_data_dbvars();
+								foreach($this->datavars as $vars => $value) {
+										if(!in_array($vars, $data_dbvars)) {
+												$this->subtype = $vars;
+												$this->value   = $value;
+												$this->add();
+										}
 								}
-						}						
+						}
 						return true;
 				}
 				return false;
@@ -202,9 +212,9 @@ class OssnEntities extends OssnDatabase {
 		/**
 		 * Get data object.
 		 *
-		 * @required (object)->data
+		 * Requires $object->data
 		 *
-		 * @return (array);
+		 * @return false|arrray;
 		 */
 		private function get_data_vars() {
 				if(!$this->data) {
@@ -219,12 +229,12 @@ class OssnEntities extends OssnDatabase {
 		/**
 		 * Get entities.
 		 *
-		 * @params = $this->type => entity type;
-		 *           $this->subtype => entity subtype;
-		 *           $this->owner_guid => guid of entity owner
-		 *           $this->order_by =  to sort the data in a recordset
+		 * Requires object 	$this->type => entity type;
+		 *           		$this->subtype => entity subtype;
+		 *           		$this->owner_guid => guid of entity owner
+		 *           		$this->order_by =  to sort the data in a recordset
 		 *
-		 * @return (object);
+		 * @return object
 		 */
 		public function get_entities() {
 				self::initAttributes();
@@ -234,7 +244,7 @@ class OssnEntities extends OssnDatabase {
 						'owner_guid' => $this->owner_guid,
 						'offset' => $this->offset,
 						'order_by' => $this->order_by,
-						'page_limit' => $this->page_limit,
+						'page_limit' => false,
 						'count' => $this->count,
 						'limit' => $this->limit
 				);
@@ -244,7 +254,7 @@ class OssnEntities extends OssnDatabase {
 		/**
 		 * Get newly added entity guid.
 		 *
-		 * @return (int);
+		 * @return integer
 		 */
 		public function AddedEntityGuid() {
 				return $this->getLastEntry();
@@ -292,12 +302,11 @@ class OssnEntities extends OssnDatabase {
 		/**
 		 * Delete all entities related to owner guid.
 		 *
-		 * @params = $guid = Entity guid in database
-		 *           $type = Entity type
-		 * @param string $type
+		 * @param integer $guid Entity guid in database
+		 * @param  string $type Entity type
 		 *
 		 * @todo why not there is subtype?
-		 * @return (bool);
+		 * @return boolean
 		 */
 		public function deleteByOwnerGuid($guid, $type) {
 				
@@ -319,13 +328,16 @@ class OssnEntities extends OssnDatabase {
 		/**
 		 * Delete entity.
 		 *
-		 * @params = $guid = Entity guid in database
+		 * @param integer $guid Entity guid in database
 		 *
-		 * @return (bool);
+		 * @return boolean
 		 */
-		public function deleteEntity($guid) {
+		public function deleteEntity($guid = '') {
 				if(isset($this->guid) && !empty($this->guid) && empty($guid)) {
 						$guid = $this->guid;
+				}
+				if(empty($guid)){
+					return false;
 				}
 				$params['from']   = 'ossn_entities';
 				$params['wheres'] = array(
@@ -348,9 +360,9 @@ class OssnEntities extends OssnDatabase {
 		/**
 		 * Get subtypes from entites.
 		 *
-		 * @required (object)->data
+		 * Requires $object->data
 		 *
-		 * @return (array);
+		 * @return array
 		 */
 		private function get_data_dbvars() {
 				$entities = $this->get_entities();
@@ -399,7 +411,7 @@ class OssnEntities extends OssnDatabase {
 				$limit   = $options['limit'];
 				
 				//validate offset values
-				if($options['limit'] !== false && $options['limit'] !== 0 && $options['page_limit'] !== 0) {
+				if(!empty($options['limit']) && !empty($options['limit']) && !empty($options['page_limit'])) {
 						$offset_vals = ceil($options['limit'] / $options['page_limit']);
 						$offset_vals = abs($offset_vals);
 						$offset_vals = range(1, $offset_vals);
@@ -441,13 +453,16 @@ class OssnEntities extends OssnDatabase {
 						'e.type',
 						'e.subtype'
 				);
-				$params['joins']    = "JOIN ossn_entities_metadata as emd ON e.guid=emd.guid";
+				$params['joins']    = "INNER JOIN ossn_entities_metadata as emd ON e.guid=emd.guid";
 				$params['wheres']   = array(
 						$this->constructWheres($wheres)
 				);
 				$params['order_by'] = $options['order_by'];
 				$params['limit']    = $options['limit'];
 				
+				if(!$options['order_by']) {
+						$params['order_by'] = "e.guid ASC";
+				}
 				$this->get = $this->select($params, true);
 				
 				//prepare count data;
@@ -469,5 +484,24 @@ class OssnEntities extends OssnDatabase {
 						return $entities;
 				}
 				return false;
+		}
+		/**
+		 * Can change
+		 * Check if user can change the requested item or not
+		 *
+		 * @param object $user User
+		 * @return boolean
+		 */
+		public function canChange($user = '') {
+				if(empty($user)) {
+						$user = ossn_loggedin_user();
+				}
+				$allowed = false;
+				if(isset($user->guid) && $user instanceof OssnUser) {
+						if((isset($this->owner_guid) && $this->type == 'user' && $this->owner_guid == $user->guid) || ossn_isAdminLoggedin()) {
+								$allowed = true;
+						}
+				}
+				return ossn_call_hook('user', 'can:change', $this, $allowed);
 		}
 } //class

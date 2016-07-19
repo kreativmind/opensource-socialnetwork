@@ -4,9 +4,9 @@
  *
  * @packageOpen Source Social Network
  * @author    Open Social Website Core Team <info@informatikon.com>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
  
 define('__OSSN_SMILIES__', ossn_route()->com . 'OssnSmilies/');
@@ -55,7 +55,11 @@ function ossn_embed_smiley($hook, $type, $return, $params){
  * @access private
  */
 function ossn_smiley_in_comments($hook, $type, $return, $params){
-	$return['comment']['comments:post'] = smilify($return['comment']['comments:post']);
+	if(isset($return['comment']['comments:post'])){
+		$return['comment']['comments:post'] = smilify($return['comment']['comments:post']);
+	} elseif(isset($return['comment']['comments:entity'])){
+		$return['comment']['comments:entity'] = smilify($return['comment']['comments:entity']);		
+	}
 	return $return;	
 }
 //initilize ossn smilies

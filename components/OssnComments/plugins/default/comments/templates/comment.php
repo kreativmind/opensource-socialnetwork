@@ -4,9 +4,9 @@
  *
  * @packageOpen Source Social Network
  * @author    Open Social Website Core Team <info@informatikon.com>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 ossn_trigger_callback('comment', 'load', $params['comment']);
 $OssnLikes = new OssnLikes;
@@ -19,19 +19,18 @@ $likes_total = $OssnLikes->CountLikes($comment->id, $type);
 $datalikes = '';
 if ($likes_total > 0) {
     $datalikes = $likes_total;
-    $likes_total = '<span class="dot-likes">.</span><div class="ossn-like-icon"></div>' . $likes_total;
+    $likes_total = "<i class='fa fa-thumbs-up'></i>" . $likes_total;
 }
 ?>
+
 <div class="comments-item" id="comments-item-<?php echo $comment->id; ?>">
-    <div class="ossn-comment-menu" onclick="Ossn.CommentMenu(this);">
-        <?php
-        echo ossn_view_menu('comments', 'comments/menu/comments');
-        ?>
-    </div>
-    <div class="poster-image">
-        <img src="<?php echo $user->iconURL()->smaller; ?>"/>
-    </div>
-    <div class="comment-text">
+    <div class="row">
+        <div class="col-md-1">
+            <img class="comment-user-img" src="<?php echo $user->iconURL()->smaller; ?>" />
+        </div>
+        <div class="col-md-11">
+
+            <div class="comment-contents">
         <p>
             <?php
 			 echo ossn_plugin_view('output/url', array(
@@ -52,8 +51,8 @@ if ($likes_total > 0) {
             }
             ?>
         </p>
-
-        <div class="comment-metadata"> <?php echo ossn_user_friendly_time($comment->time_created); ?>
+<div class="comment-metadata"> 
+			<div class="time-created"><?php echo ossn_user_friendly_time($comment->time_created); ?></div>
             <?php if (ossn_isLoggedIn()) {
                 	 if (!$OssnLikes->isLiked($comment->id, ossn_loggedin_user()->guid, $type)) {
 							echo ossn_plugin_view('output/url', array(
@@ -76,12 +75,22 @@ if ($likes_total > 0) {
             	} // Likes only for loggedin users end 
 				// Show total likes
 				echo ossn_plugin_view('output/url', array(
-						'href' => 'javascript::;', 
+						'href' => 'javascript:void(0);', 
 						'text' => $likes_total, 
-						'class' => "ossn-total-likes-{$comment->id}",
+						'onclick' => "Ossn.ViewLikes({$comment->id}, 'annotation')",
+						'class' => "ossn-total-likes ossn-total-likes-{$comment->id}",
 						'data-likes' => $datalikes,
 						));				
 				?>
+                     <div class="ossn-comment-menu">
+            	<div class="dropdown">
+	        	<?php
+    	   			 echo ossn_view_menu('comments', 'comments/menu/comments');
+       			 ?>
+                 </div>
+    		</div>            
+        </div>
+            </div>
         </div>
     </div>
 </div>

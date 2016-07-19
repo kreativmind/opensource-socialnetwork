@@ -3,9 +3,9 @@
  *
  * @packageOpen Source Social Network
  * @author    Open Social Website Core Team <info@informatikon.com>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 Ossn.PostComment = function($container) {
     Ossn.ajaxRequest({
@@ -21,6 +21,8 @@ Ossn.PostComment = function($container) {
                 $('.ossn-comments-list-' + $container).append(callback['comment']);
                 $('#comment-attachment-container-' + $container).hide();
                 $('#ossn-comment-attachment-' + $container).find('.image-data').html('');
+                //commenting pic followed by text gives warnings #664 $dev.githubertus
+                $('#comment-container-' + $container).find('input[name="comment-attachment"]').val('');
             }
             if (callback['process'] == 0) {
                 $('#comment-box-' + $container).removeAttr('readonly');
@@ -43,6 +45,7 @@ Ossn.EntityComment = function($container) {
                 $('.ossn-comments-list-' + $container).append(callback['comment']);
                 $('#comment-attachment-container-' + $container).hide();
                 $('#ossn-comment-attachment-' + $container).find('.image-data').html('');
+                $('#comment-container-' + $container).find('input[name="comment-attachment"]').val('');
             }
             if (callback['process'] == 0) {
                 $('#comment-box-' + $container).removeAttr('readonly');
@@ -125,3 +128,17 @@ Ossn.CommentImage = function($container) {
     });
 
 };
+Ossn.RegisterStartupFunction(function() {
+    $(document).ready(function() {
+    	$('body').delegate('.comment-post', 'click', function(){
+        	var $guid = $(this).attr('data-guid');
+            if($guid){
+            	$("#comment-box-"+$guid).focus();
+            }
+        });
+    	$('body').delegate('.ossn-edit-comment', 'click', function(){
+        	var $dataguid = $(this).attr('data-guid');
+            Ossn.MessageBox('comment/edit/'+$dataguid);
+        });        
+    });
+});

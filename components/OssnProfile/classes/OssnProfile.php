@@ -3,11 +3,11 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 class OssnProfile extends OssnDatabase {
     /**
@@ -166,6 +166,24 @@ class OssnProfile extends OssnDatabase {
 					return true;
 				}
 			}
+		}
+		return false;
+	}
+	/**
+	 * Get cover URL
+	 *
+	 * @param object $user OssnUser object
+	 *
+	 * @return string|boolean
+	 */
+	public function getCoverURL($user = ''){
+		if(!empty($user) && $user instanceof OssnUser){
+			if(!isset($user->cover_time) && empty($user->cover_time)){
+				$user->cover_time = time();
+				$user->data->cover_time = $user->cover_time;
+				$user->save();
+			}
+			return ossn_site_url("cover/{$user->username}/".md5($user->cover_time).'.jpg');
 		}
 		return false;
 	}

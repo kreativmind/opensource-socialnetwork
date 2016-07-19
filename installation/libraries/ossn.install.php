@@ -2,11 +2,11 @@
 /**
  * Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
  
 /**
@@ -218,4 +218,20 @@ if(isset($url)){
 	curl_close($curlinit);
 }
 return $result;
+}
+/**
+ * Generate .htaccess file
+ *
+ * @return ooolean;
+ */
+function ossn_generate_server_config_setup($type){
+	if($type == 'apache'){
+		$path = str_replace('installation/', '', ossn_installation_paths()->root);
+		$file = ossn_installation_paths()->root . 'configs/htaccess.dist';
+		$file = file_get_contents($file);
+		return file_put_contents($path . '.htaccess', $file);
+	}elseif($type == 'nginx'){
+		return false;
+	}
+	return false;
 }

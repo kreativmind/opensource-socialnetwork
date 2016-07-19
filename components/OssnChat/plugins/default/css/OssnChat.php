@@ -26,12 +26,12 @@
 .ossn-chat-base .ossn-chat-bar .inner {
     padding: 10px;
     margin-left: 5px;
-    background: #EBEEF4;
+    background: #F7F7F7;
     -webkit-box-shadow: inset 0 1px rgba(255, 255, 255, 0.5);
     border: 1px solid #BAC0CD;
-    height: 29px;
-    border-radius-top-right: 4px;
-    border-radius-top-left: 4px;
+    height: 35px;
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
 }
 
 .ossn-chat-base .ossn-chat-bar .inner:hover {
@@ -39,31 +39,37 @@
 }
 
 .ossn-chat-base .ossn-chat-bar .friends-list {
-    background: #F2F3F5;
-    width: 193px;
-    min-height: 268px;
-    margin-top: -268px;
+    background: #F9F9FB;
+    width: 195px;
+	min-height: 271px;
+    margin-top: -271px;
     margin-left: 5px;
     position: fixed;
     height: 268px;
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
-    border-left: 1px solid #ccc;
-    border-right: 1px solid #ccc;
     display: none;
 }
-
+img.ustatus {
+	border-radius: 32px;
+}
+img.ustatus.ossn-chat-icon-online {
+    border: 3px solid #4cae4c;
+    }
 .ossn-chat-inner-text {
-    width: 160px;
+    width: 145px;
     margin-left: 20px;
     font-weight: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .ossn-chat-tab-titles {
-    background: #41667B;
-    background: linear-gradient(#41667B, #3A5A6D);
+    background: linear-gradient(#2C91B7, #0084B4);
+    color: #fff;
     padding: 5px;
-    border: 1px solid #3A5A6D;
+    border: 1px solid #0B769C;
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
 }
@@ -90,6 +96,7 @@
 
 .ossn-chat-tab-titles:hover {
     background: #41667B;
+    border:1px solid #3A5A6D;
 }
 
 .ossn-chat-tab-titles .text {
@@ -97,13 +104,21 @@
     font-weight: bold;
     margin-left: 9px;
     padding: 2px;
+    max-width: 190px;
+    white-space: nowrap;
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .ossn-chat-bar .friends-list .data {
-    width: 193px;
+    width: 195px;
     overflow: hidden;
     overflow-y: scroll;
-    height: 239px;
+    height: 236px;
+    
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;    
 }
 
 .ossn-chat-base .ossn-chat-bar .friends-list-item:hover {
@@ -120,22 +135,25 @@
     display: inline-table;
     width: 32px;
     height: 32px;
-    border: 1px solid #ccc;
 }
 
 .ossn-chat-base .ossn-chat-bar .friends-list-item .name {
-    margin-top: -25px;
+    margin-top: -28px;
     margin-left: 40px;
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .ossn-chat-base .ossn-chat-bar .friends-list-item .ossn-chat-icon-online {
-    float: right;
-    margin-right: 4px;
-    margin-top: -17px;
+    border: 3px solid #4cae4c;
+	border-radius: 32px;
 }
 
 .ossn-chat-none {
     padding: 5px;
+    margin-top:10px;
 }
 
 .friend-tab-item {
@@ -147,13 +165,15 @@
 }
 
 .friend-tab-item .friend-tab {
-    padding: 10px;
+    padding: 12px;
     margin-left: 5px;
-    background: #EBEEF4;
+    background: #F7F7F7;
     -webkit-box-shadow: inset 0 1px rgba(255, 255, 255, 0.5);
-    border: 1px solid #BAC0CD;
-    height: 29px;
-    border-radius: 3px;
+    border: 1px solid #ccc;
+    height: 35px;
+    
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
 }
 
 .ossn-chat-tab-active {
@@ -163,7 +183,7 @@
 }
 
 .friend-tab-item .tab-container {
-    margin-top: -265px;
+    margin-top: -268px;
     position: absolute;
     height: 265px;
     width: 251px;
@@ -175,8 +195,8 @@
     background: #eee;
     border-left: 1px solid #ccc;
     border-right: 1px solid #ccc;
-    width: 249px;
-    height: 236px;
+    width: 251px;
+    height: 237px;
     overflow: hidden;
     overflow-y: scroll;
 }
@@ -193,6 +213,9 @@
 .friend-tab-item .data .message-reciever .text {
     margin-right: auto;
     background-image: -webkit-linear-gradient(bottom, #F2F2F2, #FFF);
+    background-image: -moz-linear-gradient(bottom, #F2F2F2, #FFF);
+    background-image: -ms-linear-gradient(bottom, #F2F2F2, #FFF);
+    background-image: linear-gradient(bottom, #F2F2F2, #FFF);
     border-radius: 3px;
     border: 1px solid #ccc;
     text-shadow: rgba(255, 255, 255, .5) 0 1px 0;
@@ -203,6 +226,8 @@
 .friend-tab-item .data .message-reciever .text .inner {
     padding: 5px;
     line-height: 15px;
+    max-width: 165px;
+    word-wrap: break-word;
 }
 
 .friend-tab-item .data .message-sender {
@@ -218,6 +243,10 @@
 .friend-tab-item .data .message-reciever .user-icon {
     display: inline-table;
     padding: 3px;
+}
+.friend-tab-item .data .message-reciever .user-icon img {
+	width:32px;
+    height:32px;
 }
 
 .friend-tab-item .data .message-sender .text {
@@ -271,14 +300,16 @@
 }
 
 .friend-tab-item .friend-tab input[type='text'] {
-    width: 218px;
+    width: 213px;
     height: 30px;
     padding: 2px;
-    margin-top: -9px;
-    margin-left: -9px;
+	margin-top: -12px;
+	margin-left: -12px;
     position: absolute;
     font-family: 'lucida grande',tahoma,verdana,arial,sans-serif;
     font-size: 12px;
+    border:0px;
+    outline:none;
 }
 
 .ossn-chat-tab-close {
@@ -298,11 +329,13 @@
     font-size: 10px;
     float: left;
     display: none;
+	margin-top: -2px;
+    position: absolute;     
 }
 
 .ossn-chat-icon-smilies {
     background: #FFF;
-    width: 221px;
+    width: 235px;
     min-height: 40px;
     padding: 5px;
     position: fixed;
@@ -315,52 +348,60 @@
 }
 
 .ossn-chat-icon-smile-set {
-    margin-top: -10px;
+    margin-top: -12px;
     background: #fff;
-    width: 29px;
+    width: 37px;
     padding: 4px;
     height: 27px;
     position: absolute;
-    margin-left: 201px;
+    margin-left: 200px;
 }
 
 .ossn-chat-icon-smilies {
     display: none;
 }
 /** Icons **/
-.ossn-chat-icon {
-    background: url("<?php echo ossn_site_url(); ?>components/OssnChat/images/useronline.png") no-repeat;
-    width16px;
-height: 14px;
+.ossn-chat-icon {}
+.ossn-chat-icon-online:before {
+	content: "\f111 ";
+    font-family: FontAwesome;
+    font-style: normal;
+    font-weight: normal;
+    color: #57B540;
+    font-size: 12px;
+    float: left;
 }
 
-.ossn-chat-icon-online {
-    background: url("<?php echo ossn_site_url(); ?>components/OssnChat/images/online.png") no-repeat;
-    width: 10px;
-    height: 14px;
+.ossn-chat-icon-offline:before {
+	content: "\f111 ";
+    font-family: FontAwesome;
+    font-style: normal;
+    font-weight: normal;
+    color: #D23636;
+    font-size: 12px;
+    float: left;
 }
 
-.ossn-chat-icon-offline {
-    background: url("<?php echo ossn_site_url(); ?>components/OssnChat/images/offline.png") no-repeat;
-    width: 10px;
-    height: 14px;
-}
 
-.ossn-chat-icon-expend {
-    background: url("<?php echo ossn_site_url(); ?>components/OssnChat/images/popup.png") no-repeat;
-    width: 10px;
-    height: 11px;
-    margin-right: 8px;
+.ossn-chat-icon-expend:before {
+    content: "\f0b2";
+    font-family: FontAwesome;
+    font-style: normal;
+    font-weight: normal;
+    color: #fff;
+    font-size: 12px;
 }
 
 .ossn-chat-icon-expend:hover {
     opacity: 0.9;
 }
 
-.ossn-chat-icon-smile {
-    background: url("<?php echo ossn_site_url(); ?>components/OssnChat/images/smile.png") no-repeat;
-    width: 14px;
-    height: 14px;
+.ossn-chat-icon-smile:before {
+    content: "\f118";
+    font-family: FontAwesome;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 16px;
     margin-left: 10px;
 }
 
@@ -402,13 +443,12 @@ and (min-width : 1360px) {
     .ossn-chat-windows-long .inner {
         margin-top: 45px;
         border-top: 1px solid #ccc;
-        overflow: hidden;
-        overflow: auto;
-        height: 600px;
+        overflow-x: hidden;
+        overflow-y: auto;
     }
 
     .ossn-chat-windows-long .friends-list-item .friends-item-inner {
-        margin: 5px 5px 5px 5px;
+        margin: 10px 5px 5px 5px;
         height: 32px;
     }
 
@@ -428,19 +468,29 @@ and (min-width : 1360px) {
         display: inline-block;
         width: 32px;
         height: 32px;
-        border: 1px solid #ccc;
     }
+	
 
     .ossn-chat-windows-long .friends-list-item .name {
         margin-top: -25px;
         margin-left: 40px;
+        max-width: 110px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
-    .ossn-chat-windows-long .friends-list-item .ossn-chat-icon-online {
-        float: right;
-        margin-right: 4px;
-        margin-top: -17px;
-    };
+   .ossn-chat-windows-long .friends-list-item .ossn-chat-icon-online:before {
+    	float: right;
+ 	margin-right:4px;
+    	margin-top: -17px;
+ 	content: "\f111 ";
+    	font-family: FontAwesome;
+    	font-style: normal;
+    	font-weight: normal;
+    	color: #57B540;
+    	font-size: 12px;
+    }
 }
 /** Document **/
 #ossn-chat-sound {
@@ -457,9 +507,37 @@ and (min-width : 1360px) {
     background: #fff;
     display: none;
 }
-
+.friend-tab .ossn-chat-inner-text {
+	margin-top: -2px;
+}
 .ossn-chat-sending-icon {
     background: url("<?php echo ossn_site_url();?>components/OssnChat/images/loading-small.gif") no-repeat;
     width: 16px;
     height: 11px;
+}
+.ossnchat-scroll-top {
+	margin-top:0px !important;
+}
+
+@media (max-width: 480px){
+    .ossn-chat-base {
+    	display:none !important;
+    }
+}
+
+@media only screen and (max-width: 480px) {
+    .ossn-chat-base {
+    	display:none !important;
+    }
+}
+@media only screen and (max-width: 768px) {
+    .ossn-chat-base {
+    	display:none !important;
+    }
+}
+footer { 
+	margin-bottom:50px;	
+}
+@-ms-viewport {
+   width: auto;
 }

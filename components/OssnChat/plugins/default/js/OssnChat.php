@@ -1,11 +1,11 @@
 /**
  * 	Open Source Social Network
  *
- * @package   (Informatikon.com).ossn
- * @author    OSSN Core Team <info@opensource-socialnetwork.org>
- * @copyright 2014 iNFORMATIKON TECHNOLOGIES
+ * @package   (softlab24.com).ossn
+ * @author    OSSN Core Team <info@softlab24.com>
+ * @copyright 2014-2016 SOFTLAB24 LIMITED
  * @license   General Public Licence http://www.opensource-socialnetwork.org/licence
- * @link      http://www.opensource-socialnetwork.org/licence
+ * @link      https://www.opensource-socialnetwork.org/
  */
 Ossn.RegisterStartupFunction(function() {
     $(document).ready(function() {
@@ -33,7 +33,7 @@ Ossn.RegisterStartupFunction(function() {
         /*
          * Process sidebar chat height;
          */
-        var sidebarheight = $(document).height();
+        var sidebarheight = $(window).height();
         sidebarheight = sidebarheight - 45;
         $(".ossn-chat-windows-long").find('.inner').height(sidebarheight + 'px');
 
@@ -49,7 +49,7 @@ Ossn.ChatOpenTab = function($user) {
         $tabitem.find('input[type="text"]').show();
         $('#ftab' + $user).removeClass('ossn-chat-tab-active');
         $tabitem.find('.ossn-chat-new-message').hide();
-        //$tabitem.find('.ossn-chat-new-message').html('');           
+        $tabitem.find('.ossn-chat-new-message').empty();           
         Ossn.ChatScrollMove($user);
     }
 };
@@ -79,9 +79,17 @@ Ossn.ChatSendForm = function($user) {
     Ossn.ajaxRequest({
         url: Ossn.site_url + "action/ossnchat/send",
         form: '#ossn-chat-send-' + $user,
-
+        
         beforeSend: function(request) {
-            $('#ftab-i' + $user).find('.ossn-chat-message-sending').show();
+             var $input = $('#ossn-chat-send-' + $user).find("input[type='text']");
+            //chat: annoying procedure on pressing just [Enter] without any input #651
+            if(!$.trim($input.val())){
+           		$('#ftab-i' + $user).find('.ossn-chat-message-sending').hide();
+                $('#ftab-i' + $user).find('input[name="message"]').val('');
+                request.abort();
+            } else {
+	            $('#ftab-i' + $user).find('.ossn-chat-message-sending').show();
+             }
         },
         callback: function(callback) {
             if (callback['type'] == 1) {
